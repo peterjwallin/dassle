@@ -1,0 +1,48 @@
+{
+  "name": "dassle-server",
+  "version": "0.1.0",
+  "description": "Distributed Cloud Storage Application",
+  "engines": {
+    "node": "6.9.1"
+  },
+  "private": true,
+  "babel": {
+    "presets": [
+      "es2015",
+      "stage-0"
+    ]
+  },
+  "dependencies": {
+    "babel-cli": "6.14.0",
+    "babel-core": "6.14.0",
+    "babel-preset-es2015": "6.14.0",
+    "babel-preset-stage-0": "6.5.0",
+    "express": "4.13.3",
+    "fs": "0.0.2",
+    "bitcore": "^4.1.0",
+    "bitcore-lib": "^0.13.19",
+    "client-sessions": "^0.7.0",
+    "dotenv": "^2.0.0",
+    "storj-lib": "^6.0.11",
+    "sql.js": "^0.3.2"
+  },
+  "scripts": {
+    "start": "concurrently \"npm run server\" \"npm run client\"",
+    "server": "babel-node server.js",
+    "client": "babel-node start-client.js",
+    "dev": "echo \"This command has been deprecated. Use 'npm start'\" && exit 1"
+  },
+  "devDependencies": {
+    "concurrently": "^3.1.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/peterjwallin/dassle"
+  },
+  "keywords": [
+    "node",
+    "storj",
+    "cloud"
+  ],
+  "license": "MIT"
+}
