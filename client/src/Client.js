@@ -1,7 +1,20 @@
-function authenticate(query, cb) {
+export function UserStatus(query, cb) {
+  //return fetch(`api/food?q=${query}`, {
+  return fetch(`api/status`, {
+    method: 'GET',
+    accept: 'application/json',
+    credentials: 'include',
+  }).then(checkStatus)
+    .then(parseJSON)
+    .then(cb);
+}
+
+export function Authenticate(query, cb) {
   //return fetch(`api/food?q=${query}`, {
   return fetch(`api/auth?passphrase=${query}`, {
+    method: 'GET',
     accept: 'application/json',
+    credentials: 'include',
   }).then(checkStatus)
     .then(parseJSON)
     .then(cb);
@@ -22,6 +35,3 @@ function checkStatus(response) {
 function parseJSON(response) {
   return response.json();
 }
-
-const Client = { authenticate };
-export default Client;

@@ -1,0 +1,64 @@
+a {
+  font-size: 16px;
+}
+
+.App-logo {
+  height: 56px;
+  width: 200px;
+}
+
+.navbar-brand {
+  padding-top:0;
+}
+
+.navbar-header {
+  height: 55px;
+}
+
+.welcome-logo {
+  height: 290px;
+  width: 500px;
+}
+
+.btn-dass {
+  margin: 10px 0;
+  background-color: #13AFBE;
+  border-color: #13AFBE;
+}
+
+.btn-dass:hover {
+  margin: 10px 0;
+  background-color: #13AFBE;
+  border-color: #13AFBE;
+}
+
+.btn-dass:focus {
+  margin: 10px 0;
+  background-color: #13AFBE;
+  border-color: #13AFBE;
+}
+
+.input-login {
+  width: 700px;
+  padding: 5px 10px;
+  margin-bottom: 10px;
+}
+
+.dass a:hover {
+    color: #F37060;
+}
+
+.dass a {
+    color: #F37060;
+}
+
+.panel-default > .panel-heading-dass {
+  /* background: #ffe9e6; */
+  background: #13AFBE;
+  color: #fff;
+  border-color: #13AFBE;
+}
+
+.panel-dass {
+  border-color: #13AFBE;
+}

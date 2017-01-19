@@ -1,2 +1,4 @@
-# dassle
-Dassle - Distributed Cloud Storage
+# Dassle
+Dassle - Distributed Cloud Storage Application
+
+Powered by the STORJ Network

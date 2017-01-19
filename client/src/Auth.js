@@ -1,41 +1,66 @@
 
-import React from 'react';
-import Client from './Client';
+import React, {Component} from 'react';
+import {Authenticate} from './Client';
 
-const Auth = React.createClass({
-  getInitialState: function () {
-    return {
-      buckets: [],
-      isLoggedIn: false,
+class Auth extends Component {
+
+  constructor(props) {
+    super(props);
+    this.state = {
       passPhrase: '',
+      isLoggedIn: false,
+      appState: 'Loggedout'
     };
-  },
-  handleAuthentication: function (e) {
-    const value = e.target.value;
+    this.handleChange = this.handleChange.bind(this);
+    this.handleSubmit = this.handleSubmit.bind(this);
+  }
 
-    this.setState({passPhrase: value});
+  handleChange(event) {
+    this.setState({passPhrase: event.target.value});
+  }
 
-    if (value === '') {
-      this.setState({
-        buckets: [],
-        isLoggedIn: false,
-      });
-    } else {
-      Client.authenticate(value, (result) => {
-        this.setState({
-          isLoggedIn: result.isLoggedIn,
-        });
-      });
-    }
-  },
-  render: function () {
+  handleSubmit(event) {
+    event.preventDefault();
+    Authenticate(this.state.passPhrase, (result) => {
+      this.setState({isLoggedIn: result.isLoggedIn});
+      if (this.state.isLoggedIn) {
+        this.setState({appState: 'Loggedin'});
+      }
+    });
+  }
+
+  render () {
+
     return (
-      <div>
-        <input className='prompt' type='text' placeholder='Enter 12 word passphrase' value={this.state.passPhrase} onChange={this.handleAuthentication}/>
-        <button>Submit</button>
+
+      <div className="container">
+
+        <div className="row login">
+          <div className="col-xs-12 text-center">
+            <br />
+            <br />
+            <div className="panel panel-default panel-dass">
+              <div className="panel-heading text-left panel-heading-dass"><strong>Passphrase</strong></div>
+                <div className="panel-body">
+                  <br />
+                  <form onSubmit={this.handleSubmit}>
+                    <input className="input-login" type="text" placeholder="Enter Your 12 Word Passphrase" value={this.state.passPhrase} onChange={this.handleChange}/>
+                    <br />
+                    <button className="btn-login btn btn-lg btn-primary btn-dass">Login</button>
+                  </form>
+                </div>
+              </div>
+          </div>
+        </div>
+
+        <h1>Hello - {this.state.appState}</h1>
+
       </div>
+
     );
-  },
-});
+
+  }
+
+}
 
 export default Auth;

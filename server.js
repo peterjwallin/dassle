@@ -37,10 +37,52 @@ app.use(session({
 //app.use(bodyParser.json());
 //app.use(bodyParser.urlencoded({ extended: true }));
 
+//Status
+app.get('/api/status', (req, res) => {
+
+  console.log('**** Executing /api/status ****');
+
+  console.log('Session', req.session.authenticated);
+
+  if (req.session.authenticated) {
+
+    if (client) {
+
+      client.getPublicKeys(function(err, keys) {
+        if (err) {
+          console.log('User is Logged Out');
+          res.json({isLoggedIn: false});
+          return;
+        }
+        else {
+          console.log('User is Logged In');
+          res.json({isLoggedIn: true});
+          return;
+
+        }
+      });
+
+    }
+
+  } else {
+
+    console.log('User has no session');
+    res.json({isLoggedIn: false});
+    return;
+
+  }
+
+});
+
 //Authentication
 app.get('/api/auth', (req, res) => {
 
-  const param = req.query.passphrase;
+  console.log('**** Executing /api/auth ****');
+
+  req.session.authenticated = false;
+  client = null;
+
+  var param = req.query.passphrase;
 
   if (!param) {
     res.json({error: 'Missing request parameter'});
@@ -52,8 +94,8 @@ app.get('/api/auth', (req, res) => {
   var hash = bitcore.crypto.Hash.sha256(value);
   var bn = bitcore.crypto.BN.fromBuffer(hash);
   var privateKey = new bitcore.PrivateKey(bn);
-  var address = privateKey.toAddress();
-  console.log('Created private key', address);
+  //var address = privateKey.toAddress();
+  //console.log('Created private key', address);
 
   // Login using the keypair
   var keypair = storj.KeyPair(privateKey.toWIF());
@@ -64,7 +106,6 @@ app.get('/api/auth', (req, res) => {
     if (err) {
       console.log('Authentication failed');
       req.session.authenticated = false;
-      //res.json({error: err.message});
       res.json({isLoggedIn: false});
       return;
     }
