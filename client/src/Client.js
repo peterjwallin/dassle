@@ -20,6 +20,17 @@ export function Authenticate(query, cb) {
     .then(cb);
 }
 
+export function Logout(query, cb) {
+  //return fetch(`api/food?q=${query}`, {
+  return fetch(`api/logout`, {
+    method: 'GET',
+    accept: 'application/json',
+    credentials: 'include',
+  }).then(checkStatus)
+    .then(parseJSON)
+    .then(cb);
+}
+
 function checkStatus(response) {
   if (response.status >= 200 && response.status < 300) {
     return response;

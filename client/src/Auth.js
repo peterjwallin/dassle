@@ -8,8 +8,7 @@ class Auth extends Component {
     super(props);
     this.state = {
       passPhrase: '',
-      isLoggedIn: false,
-      appState: 'Loggedout'
+      isLoggedIn: false
     };
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
@@ -20,11 +19,11 @@ class Auth extends Component {
   }
 
   handleSubmit(event) {
-    event.preventDefault();
+    event.defaultPrevented();
     Authenticate(this.state.passPhrase, (result) => {
       this.setState({isLoggedIn: result.isLoggedIn});
       if (this.state.isLoggedIn) {
-        this.setState({appState: 'Loggedin'});
+        ;
       }
     });
   }
@@ -53,8 +52,6 @@ class Auth extends Component {
           </div>
         </div>
 
-        <h1>Hello - {this.state.appState}</h1>
-
       </div>
 
     );
@@ -63,4 +60,4 @@ class Auth extends Component {
 
 }
 
-export default Auth;
+export {Auth};

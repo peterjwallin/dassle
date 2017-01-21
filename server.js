@@ -138,6 +138,18 @@ app.get('/api/auth', (req, res) => {
 
 });
 
+// Logoff
+app.get('/api/logout', (req, res) => {
+
+  console.log('**** Executing /api/logout ****');
+
+  req.session.authenticated = false;
+  client = null;
+  res.json({isLoggedOut: true});
+  return;
+
+});
+
 app.listen(app.get('port'), () => {
   console.log(`Find the server at: http://localhost:${app.get('port')}/`); // eslint-disable-line no-console
 });
