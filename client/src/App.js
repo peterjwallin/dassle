@@ -1,5 +1,6 @@
 import React, {Component} from 'react';
 import {UserStatus, Authenticate, Logout} from './Client';
+import {Nav} from './Nav';
 import {Welcome} from './Welcome';
 import {Auth} from './Auth';
 import {Main} from './Main';
@@ -63,8 +64,8 @@ class App extends Component {
     ;
   }
 
-  renderLoginButton() {
-    return this.state.isLoggedIn? <LogoutButton onClick={this.handleLogoutClick} /> : <LoginButton onClick={this.handleLoginClick} />;
+  renderNavBar() {
+    return <Nav isLoggedIn={this.state.isLoggedIn} onClick={this.handleLogoutClick}/>
   }
 
   renderWelcomePage() {
@@ -83,26 +84,7 @@ class App extends Component {
 
     return (
       <div>
-        <nav className="navbar navbar-default navbar-static-top">
-          <div className="navbar-header">
-            <a className="navbar-brand" href="/">
-              <img src="/logo.png" className="App-logo" alt="Dassle"/>
-            </a>
-          </div>
-          <div className="container">
-            <ul className="nav navbar-nav navbar-right">
-              <li className="navbar-left">
-                  <a className="a-home" href="#"><span className="glyphicon glyphicon-home"></span> Home</a>
-              </li>
-              <li className="navbar-left">
-                  <a className="a-about" href="#"><span className="glyphicon glyphicon-user"></span> About</a>
-              </li>
-              <li className="navbar-right">
-                {this.renderLoginButton()}
-              </li>
-            </ul>
-          </div>
-        </nav>
+        {this.renderNavBar()}
         {this.renderWelcomePage()}
         {this.renderLoginPage()}
         {this.renderMainPage()}
@@ -111,18 +93,6 @@ class App extends Component {
 
   }
 
-}
-
-function LoginButton(props) {
-  return (
-    <a className="a-login" href="#" onClick={props.onClick}><span className="glyphicon glyphicon-log-in"></span> Login</a>
-  );
-}
-
-function LogoutButton(props) {
-  return (
-    <a className="a-logout" href="#" onClick={props.onClick}><span className="glyphicon glyphicon-log-out"></span> Logout</a>
-  );
 }
 
 export default App;
