@@ -85,7 +85,7 @@ app.get('/api/auth', (req, res) => {
   var param = req.query.passphrase;
 
   if (!param) {
-    res.json({error: 'Missing request parameter'});
+    res.json({isLoggedIn: false});
     return;
   }
 

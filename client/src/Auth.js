@@ -1,6 +1,5 @@
 
 import React, {Component} from 'react';
-import {Authenticate} from './Client';
 
 class Auth extends Component {
 
@@ -19,13 +18,7 @@ class Auth extends Component {
   }
 
   handleSubmit(event) {
-    event.defaultPrevented();
-    Authenticate(this.state.passPhrase, (result) => {
-      this.setState({isLoggedIn: result.isLoggedIn});
-      if (this.state.isLoggedIn) {
-        ;
-      }
-    });
+    this.props.onClick(this.state.passPhrase);
   }
 
   render () {

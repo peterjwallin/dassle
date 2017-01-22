@@ -1,19 +1,23 @@
 import React, {Component} from 'react';
-import {UserStatus, Logout} from './Client';
+import {UserStatus, Authenticate, Logout} from './Client';
 import {Welcome} from './Welcome';
 import {Auth} from './Auth';
+import {Main} from './Main';
 import './App.css';
 
-export default class App extends Component {
+class App extends Component {
 
   constructor(props) {
     super(props);
     this.handleLoginClick = this.handleLoginClick.bind(this);
     this.handleLogoutClick = this.handleLogoutClick.bind(this);
+    this.handleAuthClick = this.handleAuthClick.bind(this);
+    this.handleMainClick = this.handleMainClick.bind(this);
     this.state = {
       isLoggedIn: false,
       showWelcome: true,
-      showLogin: false
+      showLogin: false,
+      showMain: false
     };
   }
 
@@ -23,6 +27,7 @@ export default class App extends Component {
         this.setState({isLoggedIn: true});
         this.setState({showWelcome: false});
         this.setState({showLogin: false});
+        this.setState({showMain: true});
       }
     });
   }
@@ -38,8 +43,24 @@ export default class App extends Component {
         this.setState({isLoggedIn: false});
         this.setState({showWelcome: true});
         this.setState({showLogin: false});
+        this.setState({showMain: false});
       }
     });
+  }
+
+  handleAuthClick(value) {
+    Authenticate(value, (result) => {
+      if (result.isLoggedIn) {
+        this.setState({isLoggedIn: true});
+        this.setState({showWelcome: false});
+        this.setState({showLogin: false});
+        this.setState({showMain: true});
+      }
+    });
+  }
+
+  handleMainClick() {
+    ;
   }
 
   renderLoginButton() {
@@ -51,7 +72,11 @@ export default class App extends Component {
   }
 
   renderLoginPage() {
-    return this.state.showLogin? <Auth /> : null;
+    return this.state.showLogin? <Auth onClick={this.handleAuthClick}/> : null;
+  }
+
+  renderMainPage() {
+    return this.state.showMain? <Main onClick={this.handleMainClick}/> : null;
   }
 
   render() {
@@ -80,6 +105,7 @@ export default class App extends Component {
         </nav>
         {this.renderWelcomePage()}
         {this.renderLoginPage()}
+        {this.renderMainPage()}
       </div>
     );
 
@@ -98,3 +124,5 @@ function LogoutButton(props) {
     <a className="a-logout" href="#" onClick={props.onClick}><span className="glyphicon glyphicon-log-out"></span> Logout</a>
   );
 }
+
+export default App;
