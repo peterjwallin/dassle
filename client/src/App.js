@@ -16,6 +16,7 @@ class App extends Component {
     this.handleMainClick = this.handleMainClick.bind(this);
     this.state = {
       isLoggedIn: false,
+      loginAttempt: false,
       showWelcome: true,
       showLogin: false,
       showMain: false
@@ -26,6 +27,7 @@ class App extends Component {
     UserStatus('', (result) => {
       if (result.isLoggedIn) {
         this.setState({isLoggedIn: true});
+        this.setState({loginAttempt: false});
         this.setState({showWelcome: false});
         this.setState({showLogin: false});
         this.setState({showMain: true});
@@ -34,6 +36,7 @@ class App extends Component {
   }
 
   handleLoginClick() {
+    this.setState({loginAttempt: false});
     this.setState({showWelcome: false});
     this.setState({showLogin: true});
   }
@@ -42,6 +45,7 @@ class App extends Component {
     Logout('', (result) => {
       if (result.isLoggedOut) {
         this.setState({isLoggedIn: false});
+        this.setState({loginAttempt: false});
         this.setState({showWelcome: true});
         this.setState({showLogin: false});
         this.setState({showMain: false});
@@ -53,9 +57,13 @@ class App extends Component {
     Authenticate(value, (result) => {
       if (result.isLoggedIn) {
         this.setState({isLoggedIn: true});
+        this.setState({loginAttempt: false});
         this.setState({showWelcome: false});
         this.setState({showLogin: false});
         this.setState({showMain: true});
+      }
+      else {
+        this.setState({loginAttempt: true});
       }
     });
   }
@@ -64,8 +72,8 @@ class App extends Component {
     ;
   }
 
-  renderNavBar() {
-    return <Nav isLoggedIn={this.state.isLoggedIn} onClick={this.handleLogoutClick}/>
+  renderNavbar() {
+    return <Nav isLoggedIn={this.state.isLoggedIn} Logout={this.handleLogoutClick} Login={this.handleLoginClick}/>;
   }
 
   renderWelcomePage() {
@@ -73,7 +81,7 @@ class App extends Component {
   }
 
   renderLoginPage() {
-    return this.state.showLogin? <Auth onClick={this.handleAuthClick}/> : null;
+    return this.state.showLogin? <Auth onClick={this.handleAuthClick} loginAttempt={this.state.loginAttempt}/> : null;
   }
 
   renderMainPage() {
@@ -84,7 +92,7 @@ class App extends Component {
 
     return (
       <div>
-        {this.renderNavBar()}
+        {this.renderNavbar()}
         {this.renderWelcomePage()}
         {this.renderLoginPage()}
         {this.renderMainPage()}
@@ -94,5 +102,7 @@ class App extends Component {
   }
 
 }
+
+
 
 export default App;

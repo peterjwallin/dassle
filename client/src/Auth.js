@@ -1,4 +1,3 @@
-
 import React, {Component} from 'react';
 
 class Auth extends Component {
@@ -6,8 +5,7 @@ class Auth extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      passPhrase: '',
-      isLoggedIn: false
+      passPhrase: ''
     };
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
@@ -18,7 +16,12 @@ class Auth extends Component {
   }
 
   handleSubmit(event) {
+    event.preventDefault();
     this.props.onClick(this.state.passPhrase);
+  }
+
+  renderLoginError() {
+    return this.props.loginAttempt? <LoginError /> : null;
   }
 
   render () {
@@ -45,6 +48,8 @@ class Auth extends Component {
           </div>
         </div>
 
+        {this.renderLoginError()}
+
       </div>
 
     );
@@ -52,5 +57,16 @@ class Auth extends Component {
   }
 
 }
+
+function LoginError(props) {
+  return (
+    <div className="row login-result">
+      <strong>
+        <div className="col-xs-12 text-center alert alert-danger" role="alert">Error! Passphrase is not valid.</div>
+      </strong>
+    </div>
+  );
+}
+
 
 export {Auth};
