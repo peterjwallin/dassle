@@ -150,6 +150,29 @@ app.get('/api/logout', (req, res) => {
 
 });
 
+// Get buckets
+app.get('/api/buckets', (req, res) => {
+
+  console.log('**** Executing /api/buckets ****');
+
+  client.getBuckets(function(err, buckets) {
+    if (err) {
+      res.json({isBuckets: false});
+      return;
+    }
+    else {
+      if (buckets) {
+        res.json({buckets});
+        return;
+      } else {
+        res.json({isBuckets: false});
+        return;
+      }
+    }
+  });
+
+});
+
 app.listen(app.get('port'), () => {
   console.log(`Find the server at: http://localhost:${app.get('port')}/`); // eslint-disable-line no-console
 });

@@ -1,5 +1,4 @@
 export function UserStatus(query, cb) {
-  //return fetch(`api/food?q=${query}`, {
   return fetch(`api/status`, {
     method: 'GET',
     accept: 'application/json',
@@ -10,7 +9,6 @@ export function UserStatus(query, cb) {
 }
 
 export function Authenticate(query, cb) {
-  //return fetch(`api/food?q=${query}`, {
   return fetch(`api/auth?passphrase=${query}`, {
     method: 'GET',
     accept: 'application/json',
@@ -21,8 +19,17 @@ export function Authenticate(query, cb) {
 }
 
 export function Logout(query, cb) {
-  //return fetch(`api/food?q=${query}`, {
   return fetch(`api/logout`, {
+    method: 'GET',
+    accept: 'application/json',
+    credentials: 'include',
+  }).then(checkStatus)
+    .then(parseJSON)
+    .then(cb);
+}
+
+export function Buckets(query, cb) {
+  return fetch(`api/buckets`, {
     method: 'GET',
     accept: 'application/json',
     credentials: 'include',

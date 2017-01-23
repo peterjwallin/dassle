@@ -19,7 +19,7 @@ class Nav extends Component {
           <div className="container">
             <ul className="nav navbar-nav navbar-right">
               <li className="navbar-left">
-                  <a className="a-home" href="#"><span className="glyphicon glyphicon-home"></span> Home</a>
+                  <a className="a-home" href="/"><span className="glyphicon glyphicon-home"></span> Home</a>
               </li>
               <li className="navbar-left">
                   <a className="a-about" href="#"><span className="glyphicon glyphicon-user"></span> About</a>

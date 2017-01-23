@@ -17,7 +17,7 @@ class App extends Component {
     this.state = {
       isLoggedIn: false,
       loginAttempt: false,
-      showWelcome: true,
+      showWelcome: false,
       showLogin: false,
       showMain: false
     };
@@ -31,6 +31,8 @@ class App extends Component {
         this.setState({showWelcome: false});
         this.setState({showLogin: false});
         this.setState({showMain: true});
+      } else {
+        this.setState({showWelcome: true});
       }
     });
   }

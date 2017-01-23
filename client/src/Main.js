@@ -1,6 +1,29 @@
 import React, {Component} from 'react';
+import {Buckets} from './Client';
 
 class Main extends Component {
+
+  constructor(props) {
+    super(props);
+    this.state = {
+      isBuckets: true,
+      buckets: null
+    };
+  }
+
+  componentWillMount() {
+    Buckets('', (result) => {
+      if (result.buckets) {
+        this.setState({buckets: result.buckets});
+      } else {
+        this.setState({isBuckets: result.isBuckets});
+      }
+    });
+  }
+
+  renderBuckets() {
+    return <BucketList buckets={this.state.buckets}/>;
+  }
 
   render() {
 
@@ -25,6 +48,9 @@ class Main extends Component {
                   <div className="row">
                     <div className="col-xs-12"><hr/></div>
                   </div>
+                  <div className="row">
+                    <div className="col-xs-12">{this.renderBuckets()}</div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -34,6 +60,12 @@ class Main extends Component {
 
   }
 
+}
+
+function BucketList(props) {
+  return (
+    <h1>Found Buckets</h1>
+  );
 }
 
 export {Main};
