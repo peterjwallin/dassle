@@ -1,7 +1,3 @@
-a {
-  font-size: 16px;
-}
-
 .App-logo {
   height: 56px;
   width: 200px;
@@ -44,12 +40,24 @@ a {
   margin-bottom: 10px;
 }
 
+.folder a {
+    color: #FFEC8B;
+    font-size: 58px;
+}
+
+.folder a:hover {
+    color: #FFEC8B;
+    font-size: 58px;
+}
+
 .dass a:hover {
     color: #F37060;
+    font-size: 16px;
 }
 
 .dass a {
     color: #F37060;
+    font-size: 16px;
 }
 
 .panel-default > .panel-heading-dass {

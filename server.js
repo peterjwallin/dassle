@@ -42,8 +42,6 @@ app.get('/api/status', (req, res) => {
 
   console.log('**** Executing /api/status ****');
 
-  console.log('Session', req.session.authenticated);
-
   if (req.session.authenticated) {
 
     if (client) {
