@@ -41,13 +41,15 @@
 }
 
 .folder a {
-    color: #FFEC8B;
-    font-size: 58px;
+    color: #13AFBE;
 }
 
 .folder a:hover {
-    color: #FFEC8B;
-    font-size: 58px;
+    color: #13AFBE;
+}
+
+.creation-date {
+  font-size: 10px;
 }
 
 .dass a:hover {
