@@ -38,6 +38,16 @@ export function Buckets(query, cb) {
     .then(cb);
 }
 
+export function Files(query, cb) {
+  return fetch(`api/files?bucketid=${query}`, {
+    method: 'GET',
+    accept: 'application/json',
+    credentials: 'include',
+  }).then(checkStatus)
+    .then(parseJSON)
+    .then(cb);
+}
+
 function checkStatus(response) {
   if (response.status >= 200 && response.status < 300) {
     return response;

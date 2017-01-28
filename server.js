@@ -113,24 +113,6 @@ app.get('/api/auth', (req, res) => {
       req.session.authenticated = true;
       res.json({isLoggedIn: true});
       return;
-      /*
-      client.getBuckets(function(err, buckets) {
-        if (err) {
-          res.json({error: err.message,});
-          return;
-        }
-        else {
-          if (buckets) {
-            res.json({buckets,});
-            return;
-          } else {
-            res.json({message: 'No Buckets',});
-            return;
-          }
-
-        }
-      });
-      */
     }
   });
 
@@ -166,6 +148,37 @@ app.get('/api/buckets', (req, res) => {
         res.json({isBuckets: false});
         return;
       }
+    }
+  });
+
+});
+
+app.get('/api/files', (req, res) => {
+
+  console.log('**** Executing /api/files ****');
+
+  var param = req.query.bucketid;
+
+  console.log(param);
+
+  if (!param) {
+    res.json({isFiles: false});
+    return;
+  }
+
+  client.listFilesInBucket(param, function(err, files) {
+    if (err) {
+      console.log('Error');
+      res.json({isFiles: false});
+      return;
+    }
+    if (files) {
+      console.log(files);
+      res.json({files});
+      return;
+    } else {
+      res.json({isFiles: false});
+      return;
     }
   });
 

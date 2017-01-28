@@ -40,26 +40,40 @@
   margin-bottom: 10px;
 }
 
-.folder a {
-    color: #13AFBE;
-}
-
-.folder a:hover {
-    color: #13AFBE;
-}
-
 .creation-date {
   font-size: 10px;
 }
 
-.dass a:hover {
-    color: #F37060;
-    font-size: 16px;
+.dass-file a {
+    color: #CCC;
+    text-decoration: none;
 }
 
-.dass a {
+.dass-file a:hover {
+    color: #CCC;
+    text-decoration: none;
+}
+
+.dass-folder a {
+    color: #13AFBE;
+    text-decoration: none;
+}
+
+.dass-folder a:hover {
+    color: #13AFBE;
+    text-decoration: none;
+}
+
+.dass-link a {
     color: #F37060;
     font-size: 16px;
+    text-decoration: none;
+}
+
+.dass-link a:hover {
+    color: #F37060;
+    font-size: 16px;
+    text-decoration: none;
 }
 
 .panel-default > .panel-heading-dass {

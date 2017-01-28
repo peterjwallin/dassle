@@ -1,22 +1,28 @@
 import React, {Component} from 'react';
 import Griddle from 'griddle-react';
 import {Buckets} from './Client';
+import {Files} from './Client';
 
 class Main extends Component {
 
   constructor(props) {
     super(props);
     this.handleShowBucketsClick = this.handleShowBucketsClick.bind(this);
-    this.handleShowFilesClick = this.handleShowFilesClick.bind(this);
+    this.handleShowMyFilesClick = this.handleShowMyFilesClick.bind(this);
     this.handleUploadClick = this.handleUploadClick.bind(this);
     this.handleCreateBucketClick = this.handleCreateBucketClick.bind(this);
+    this.handleDownloadClick = this.handleDownloadClick.bind(this);
     this.state = {
       showBuckets: true,
       myFiles: false,
       upload: false,
       createBucket: false,
       isBuckets: true,
-      buckets: []
+      buckets: [],
+      bucketID: null,
+      bucketName: null,
+      isFiles: false,
+      files: [],
     };
   }
 
@@ -30,6 +36,7 @@ class Main extends Component {
     });
   }
 
+  //Click Functions
   handleShowBucketsClick() {
     this.setState({showBuckets:true});
     this.setState({myFiles:false});
@@ -37,7 +44,16 @@ class Main extends Component {
     this.setState({createBucket:false});
   }
 
-  handleShowFilesClick() {
+  handleShowMyFilesClick(row) {
+    Files(row.props.data.id, (result) => {
+      if (result.files) {
+        this.setState({files: result.files});
+      } else {
+        this.setState({isFiles: result.isFiles});
+      }
+    });
+    this.setState({bucketID:row.props.data.id});
+    this.setState({bucketName:row.props.data.name});
     this.setState({showBuckets:false});
     this.setState({myFiles:true});
     this.setState({upload:false});
@@ -58,15 +74,14 @@ class Main extends Component {
     this.setState({createBucket:true});
   }
 
+  handleDownloadClick() {
+    console.log('Need to wire up download');
+  }
+
+  // Render Components
   renderMyFilesLink() {
     return <MyFilesLink onClick={this.handleShowBucketsClick} />
   }
-
-/*
-  renderBucketLink() {
-    return <BucketLink onClick={this.handleShowFilesClick} />
-  }
-*/
 
   renderUploadLink() {
     return <UploadLink onClick={this.handleUploadClick} />
@@ -78,29 +93,91 @@ class Main extends Component {
 
   renderBuckets() {
 
-    var CardComponent = React.createClass({
-      getDefaultProps: function(){
-        return { 'data': {} };
-      },
+    var NameComponent = React.createClass({
       render: function(){
-        return (
-                <div className='custom-row-card'>
-                  <div><BucketLink onClick={this.handleShowFilesClick} /></div>
-                  <div><strong>{this.props.data.name}</strong><small></small></div>
-                  <div className='creation-date'>{this.props.data.created.substring(0,10)}</div>
-                  <br/>
-                </div>
-              );
+        return <a href='#'><i className="fa fa-folder fa-2x"></i>&nbsp;{this.props.data}</a>
       }
     });
 
-    return this.state.showBuckets? <Griddle results={this.state.buckets} showFilter={false} useCustomRowComponent={true}
-                                  customRowComponent={CardComponent} showSettings={false} columns={['name', 'created']}
-                                  useGriddleStyles={false} noDataMessage={null} initialSort={'name'}/> : null
+    var DateComponent = React.createClass({
+      render: function(){
+        return <div>{this.props.data.substring(0,10)}</div>
+      }
+    });
+
+    var colStyle = [
+      {
+        "columnName": "name",
+        "order": 1,
+        "locked": false,
+        "visible": true,
+        "displayName": "Bucket",
+        "customComponent": NameComponent
+      },
+      {
+        "columnName": "created",
+        "order": 2,
+        "locked": false,
+        "visible": true,
+        "displayName": "Creation Date",
+        "customComponent": DateComponent
+      },
+      {
+        "columnName": "id",
+        "order": 3,
+        "locked": false,
+        "visible": false,
+        "displayName": "Id"
+      }
+    ];
+
+    return this.state.showBuckets? <Griddle results={this.state.buckets} showFilter={false} columnMetadata={colStyle}
+                                  showSettings={false} columns={['name', 'created', 'id']} resultsPerPage={9} useGriddleStyles={true}
+                                  noDataMessage={null} initialSort={'name'} onRowClick={this.handleShowMyFilesClick.bind(this)}/> : null
+
   }
 
-  renderMyFiles() {
-    return this.state.myFiles? <h1>My Files</h1> : null
+  renderFiles() {
+
+    var FileNameComponent = React.createClass({
+      render: function(){
+        return <a href='#'><i className="fa fa-file-o fa-1x"></i>&nbsp;{this.props.data}</a>
+      }
+    });
+
+    var colStyle = [
+      {
+        "columnName": "filename",
+        "order": 1,
+        "locked": false,
+        "visible": true,
+        "displayName": "File",
+        "customComponent": FileNameComponent
+      },
+      {
+        "columnName": "size",
+        "order": 2,
+        "locked": false,
+        "visible": true,
+        "displayName": "Size"
+      },
+      {
+        "columnName": "id",
+        "order": 3,
+        "locked": false,
+        "visible": false,
+        "displayName": "Id"
+      }
+    ];
+
+    return this.state.myFiles? <Griddle results={this.state.files} showFilter={false} columnMetadata={colStyle}
+                                  showSettings={false} columns={['filename', 'size', 'id']} resultsPerPage={20} useGriddleStyles={true}
+                                  noDataMessage={null} initialSort={'name'} onRowClick={this.handleDownloadClick.bind(this)}/> : null
+
+  }
+
+  renderMyFilesHeader() {
+    return this.state.myFiles? <h2>{this.state.bucketName}</h2> : null
   }
 
   renderUpload() {
@@ -118,12 +195,12 @@ class Main extends Component {
           <div className='container'>
             <div className='row'>
               <div className='col-xs-12'>
-                <div className='container dass'>
+                <div className='container'>
                   <br/>
                   <div className='row'>
-                      <div className='col-xs-2'>{this.renderMyFilesLink()}</div>
-                      <div className='col-xs-2'>{this.renderUploadLink()}</div>
-                      <div className='col-xs-2'>{this.renderCreateBucketLink()}</div>
+                      <div className='col-xs-2 dass-link'>{this.renderMyFilesLink()}</div>
+                      <div className='col-xs-2 dass-link'>{this.renderUploadLink()}</div>
+                      <div className='col-xs-2 dass-link'>{this.renderCreateBucketLink()}</div>
                   </div>
                   <div className='row'>
                     <div className='col-xs-12'><hr/></div>
@@ -131,8 +208,9 @@ class Main extends Component {
                 </div>
                 <div className='container folder'>
                   <div className='row'>
-                    <div className='col-xs-12'>{this.renderBuckets()}</div>
-                    <div className='col-xs-12'>{this.renderMyFiles()}</div>
+                    <div className='col-xs-12 dass-folder'>{this.renderBuckets()}</div>
+                    <div className='col-xs-12'>{this.renderMyFilesHeader()}</div>
+                    <div className='col-xs-12 dass-file'>{this.renderFiles()}</div>
                     <div className='col-xs-12'>{this.renderUpload()}</div>
                     <div className='col-xs-12'>{this.renderCreateBucket()}</div>
                   </div>
@@ -149,25 +227,19 @@ class Main extends Component {
 
 function MyFilesLink(props) {
   return (
-    <a className='a-myfiles' href='#' onClick={props.onClick}><span className='glyphicon glyphicon-file'></span>&nbsp;My Files</a>
-  );
-}
-
-function BucketLink(props) {
-  return (
-    <a className='folder' href='#' onClick={props.onClick}><i className="fa fa-folder fa-5x"></i></a>
+    <a href='#' onClick={props.onClick}><span className='glyphicon glyphicon-file'></span>&nbsp;My Files</a>
   );
 }
 
 function UploadLink(props) {
   return (
-    <a className='a-upload' href='#' onClick={props.onClick}><span className='glyphicon glyphicon-cloud-upload'></span>&nbsp;Upload</a>
+    <a href='#' onClick={props.onClick}><span className='glyphicon glyphicon-cloud-upload'></span>&nbsp;Upload</a>
   );
 }
 
 function CreateBucketLink(props) {
   return (
-    <a className='a-createbucket' href='#' onClick={props.onClick}><span className='glyphicon glyphicon-folder-open'></span>&nbsp;&nbsp;Create Bucket</a>
+    <a href='#' onClick={props.onClick}><span className='glyphicon glyphicon-folder-open'></span>&nbsp;&nbsp;Create Bucket</a>
   );
 }
 
