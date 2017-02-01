@@ -1,7 +1,11 @@
 import React, {Component} from 'react';
+
 import Griddle from 'griddle-react';
+import DropzoneComponent from 'react-dropzone-component';
 import {Buckets} from './Client';
 import {Files} from './Client';
+import './css/filepicker.css';
+import './css/dropzone.css';
 
 class Main extends Component {
 
@@ -165,19 +169,67 @@ class Main extends Component {
         "columnName": "id",
         "order": 3,
         "locked": false,
-        "visible": false,
+        "visible": true,
         "displayName": "Id"
+      },
+      {
+        "columnName": "mimetype",
+        "order": 4,
+        "locked": false,
+        "visible": true,
+        "displayName": "Mime Type"
       }
     ];
 
     return this.state.myFiles? <Griddle results={this.state.files} showFilter={false} columnMetadata={colStyle}
-                                  showSettings={false} columns={['filename', 'size', 'id']} resultsPerPage={20} useGriddleStyles={true}
+                                  showSettings={false} columns={['filename', 'size', 'id', 'mimetype']} resultsPerPage={5} useGriddleStyles={true}
                                   noDataMessage={null} initialSort={'name'} onRowClick={this.handleDownloadClick.bind(this)}/> : null
 
   }
 
+  //Upload Pane
+  renderDropZone() {
+
+    //Upload Functions
+    function handleCompletedUploads(bucketid) {
+      console.log('Running callback', bucketid)
+      /*Files(bucketid, (result) => {
+        result.files? this.setState({files: result.files}) : this.setState({isFiles: result.isFiles})
+      });*/
+    }
+
+    var completeCallback = function () {
+        handleCompletedUploads(this.state.bucketid);
+    };
+
+    var componentConfig = {
+      iconFiletypes: ['File'],
+      showFiletypeIcon: true,
+      postUrl: '/api/dzupload'
+    };
+
+    var djsConfig = {
+      autoProcessQueue: true,
+      addRemoveLinks: true,
+      parallelUploads: 1,
+      clickable: false,
+      maxFilesize: 100,
+      dictFileTooBig: 'File is to large',
+      maxFiles: 10,
+      dictMaxFilesExceeded: 'Exceeded maximum allowable files'
+    };
+
+    var eventHandlers = {
+      addedfile: (file) => console.log(file),
+      queuecomplete: completeCallback
+    };
+
+    return this.state.myFiles? <DropzoneComponent config={componentConfig} eventHandlers={eventHandlers} djsConfig={djsConfig}/> : null
+
+  }
+
   renderMyFilesHeader() {
-    return this.state.myFiles? <h2>{this.state.bucketName}</h2> : null
+    return this.state.myFiles? <p>{this.state.bucketName}</p> : null
   }
 
   renderUpload() {
@@ -192,32 +244,28 @@ class Main extends Component {
 
       return (
 
-          <div className='container'>
-            <div className='row'>
-              <div className='col-xs-12'>
-                <div className='container'>
-                  <br/>
-                  <div className='row'>
-                      <div className='col-xs-2 dass-link'>{this.renderMyFilesLink()}</div>
-                      <div className='col-xs-2 dass-link'>{this.renderUploadLink()}</div>
-                      <div className='col-xs-2 dass-link'>{this.renderCreateBucketLink()}</div>
-                  </div>
-                  <div className='row'>
-                    <div className='col-xs-12'><hr/></div>
-                  </div>
-                </div>
-                <div className='container folder'>
-                  <div className='row'>
-                    <div className='col-xs-12 dass-folder'>{this.renderBuckets()}</div>
-                    <div className='col-xs-12'>{this.renderMyFilesHeader()}</div>
-                    <div className='col-xs-12 dass-file'>{this.renderFiles()}</div>
-                    <div className='col-xs-12'>{this.renderUpload()}</div>
-                    <div className='col-xs-12'>{this.renderCreateBucket()}</div>
-                  </div>
-                </div>
-              </div>
-            </div>
+        <div className='container'>
+          <br/>
+          <div className='row'>
+            <div className='col-xs-2 dass-link'>{this.renderMyFilesLink()}</div>
+            <div className='col-xs-2 dass-link'>{this.renderUploadLink()}</div>
+            <div className='col-xs-2 dass-link'>{this.renderCreateBucketLink()}</div>
           </div>
+          <div className='row'>
+            <div className='col-xs-12'><hr/></div>
+          </div>
+          <div className='row'>
+            <div className='col-xs-12 dass-folder'>{this.renderBuckets()}</div>
+            <div className='col-xs-12'>{this.renderMyFilesHeader()}</div>
+            <div className='col-xs-12 dass-file'>{this.renderFiles()}</div>
+            <div className='col-xs-12'>{this.renderUpload()}</div>
+            <div className='col-xs-12'>{this.renderCreateBucket()}</div>
+          </div>
+          <div className='row'>
+            <br/>
+            <div className='col-xs-12'>{this.renderDropZone()}</div>
+          </div>
+        </div>
 
       );
 

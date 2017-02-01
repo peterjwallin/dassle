@@ -4,7 +4,7 @@ import {Nav} from './Nav';
 import {Welcome} from './Welcome';
 import {Auth} from './Auth';
 import {Main} from './Main';
-import './App.css';
+import './css/App.css';
 
 class App extends Component {
 
