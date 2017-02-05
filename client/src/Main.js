@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
-
-import Griddle from 'griddle-react';
 import DropzoneComponent from 'react-dropzone-component';
+import {BucketList} from './BucketList';
+import {FileList} from './FileList';
 import {Buckets} from './Client';
 import {Files} from './Client';
 import './css/filepicker.css';
@@ -16,6 +16,7 @@ class Main extends Component {
     this.handleUploadClick = this.handleUploadClick.bind(this);
     this.handleCreateBucketClick = this.handleCreateBucketClick.bind(this);
     this.handleDownloadClick = this.handleDownloadClick.bind(this);
+    this.handleShowMyFiles = this.handleShowMyFiles.bind(this);
     this.state = {
       showBuckets: true,
       myFiles: false,
@@ -64,6 +65,16 @@ class Main extends Component {
     this.setState({createBucket:false});
   }
 
+  handleShowMyFiles() {
+    Files(this.state.bucketID, (result) => {
+      if (result.files) {
+        this.setState({files: result.files});
+      } else {
+        this.setState({isFiles: result.isFiles});
+      }
+    });
+  }
+
   handleUploadClick() {
     this.setState({showBuckets:false});
     this.setState({myFiles:false});
@@ -96,116 +107,32 @@ class Main extends Component {
   }
 
   renderBuckets() {
-
-    var NameComponent = React.createClass({
-      render: function(){
-        return <a href='#'><i className="fa fa-folder fa-2x"></i>&nbsp;{this.props.data}</a>
-      }
-    });
-
-    var DateComponent = React.createClass({
-      render: function(){
-        return <div>{this.props.data.substring(0,10)}</div>
-      }
-    });
-
-    var colStyle = [
-      {
-        "columnName": "name",
-        "order": 1,
-        "locked": false,
-        "visible": true,
-        "displayName": "Bucket",
-        "customComponent": NameComponent
-      },
-      {
-        "columnName": "created",
-        "order": 2,
-        "locked": false,
-        "visible": true,
-        "displayName": "Creation Date",
-        "customComponent": DateComponent
-      },
-      {
-        "columnName": "id",
-        "order": 3,
-        "locked": false,
-        "visible": false,
-        "displayName": "Id"
-      }
-    ];
-
-    return this.state.showBuckets? <Griddle results={this.state.buckets} showFilter={false} columnMetadata={colStyle}
-                                  showSettings={false} columns={['name', 'created', 'id']} resultsPerPage={9} useGriddleStyles={true}
-                                  noDataMessage={null} initialSort={'name'} onRowClick={this.handleShowMyFilesClick.bind(this)}/> : null
-
+    return this.state.showBuckets? <BucketList buckets={this.state.buckets} onClick={this.handleShowMyFilesClick.bind(this)} /> : null
   }
 
   renderFiles() {
-
-    var FileNameComponent = React.createClass({
-      render: function(){
-        return <a href='#'><i className="fa fa-file-o fa-1x"></i>&nbsp;{this.props.data}</a>
-      }
-    });
-
-    var colStyle = [
-      {
-        "columnName": "filename",
-        "order": 1,
-        "locked": false,
-        "visible": true,
-        "displayName": "File",
-        "customComponent": FileNameComponent
-      },
-      {
-        "columnName": "size",
-        "order": 2,
-        "locked": false,
-        "visible": true,
-        "displayName": "Size"
-      },
-      {
-        "columnName": "id",
-        "order": 3,
-        "locked": false,
-        "visible": true,
-        "displayName": "Id"
-      },
-      {
-        "columnName": "mimetype",
-        "order": 4,
-        "locked": false,
-        "visible": true,
-        "displayName": "Mime Type"
-      }
-    ];
-
-    return this.state.myFiles? <Griddle results={this.state.files} showFilter={false} columnMetadata={colStyle}
-                                  showSettings={false} columns={['filename', 'size', 'id', 'mimetype']} resultsPerPage={5} useGriddleStyles={true}
-                                  noDataMessage={null} initialSort={'name'} onRowClick={this.handleDownloadClick.bind(this)}/> : null
-
+    return this.state.myFiles? <FileList filelist={this.state.files} onClick={this.handleDownloadClick.bind(this)} /> : null
   }
 
   //Upload Pane
   renderDropZone() {
 
+    const bucket = this.state.bucketID;
+    const handleShowMyFiles = this.handleShowMyFiles;
+
     //Upload Functions
-    function handleCompletedUploads(bucketid) {
-      console.log('Running callback', bucketid)
-      /*Files(bucketid, (result) => {
-        result.files? this.setState({files: result.files}) : this.setState({isFiles: result.isFiles})
-      });*/
+    function handleCompletedUploads(bucket, func, cb) {
+      handleShowMyFiles();
     }
 
-    var completeCallback = function () {
-        handleCompletedUploads(this.state.bucketid);
-    };
+    var completeCallback = function() {
+      handleCompletedUploads(bucket, handleShowMyFiles);
+    }
 
     var componentConfig = {
       iconFiletypes: ['File'],
       showFiletypeIcon: true,
-      postUrl: '/api/dzupload'
+      postUrl: '/api/upload'
     };
 
     var djsConfig = {
@@ -220,8 +147,8 @@ class Main extends Component {
     };
 
     var eventHandlers = {
-      addedfile: (file) => console.log(file),
-      queuecomplete: completeCallback
+      /* addedfile: (file) => console.log(file), */
+      success: completeCallback
     };
 
     return this.state.myFiles? <DropzoneComponent config={componentConfig} eventHandlers={eventHandlers} djsConfig={djsConfig}/> : null

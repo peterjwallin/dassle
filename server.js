@@ -7,11 +7,10 @@ var bitcore = require('bitcore-lib');
 var dotenv = require('dotenv');
 var bodyParser = require('body-parser');
 var multer  = require('multer');
-
-
+var stream = require('stream');
 
 //Storj variables
-var api = 'https://api.storj.io';
+const api = 'https://api.storj.io';
 var client;
 /*
 var STORJ_EMAIL = process.env.STORJ_EMAIL;
@@ -33,8 +32,8 @@ var storage = multer.diskStorage({
   }
 })
 */
-var storage = multer.memoryStorage()
-var upload = multer({
+const storage = multer.memoryStorage()
+const upload = multer({
   storage: storage,
   limits: {
   files: 10,
@@ -45,10 +44,10 @@ var upload = multer({
 
 // Key variables
 //var KEYRING_PASS = process.env.KEYRING_PASS;
-var USER_DIR = './.users/';
+const USER_DIR = './.users/';
 
 //Setup app
-var app = express();
+const app = express();
 dotenv.load();
 app.set('port', (process.env.PORT || 3001));
 if (process.env.NODE_ENV === 'production') {
@@ -62,7 +61,6 @@ app.use(session({
   duration: 30 * 60 * 1000,
   activeDuration: 5 * 60 * 1000,
 }));
-
 
 //Status
 app.get('/api/status', (req, res) => {
@@ -93,7 +91,7 @@ app.get('/api/auth', (req, res) => {
   req.session.authenticated = false;
   client = null;
 
-  var passphrase = req.query.passphrase;
+  const passphrase = req.query.passphrase;
 
   if (!passphrase) {
     res.json({isLoggedIn: false});
@@ -101,15 +99,15 @@ app.get('/api/auth', (req, res) => {
   }
 
   //Create Private Key from Mnemonic
-  var value = new Buffer(passphrase);
-  var hash = bitcore.crypto.Hash.sha256(value);
-  var bn = bitcore.crypto.BN.fromBuffer(hash);
-  var privateKey = new bitcore.PrivateKey(bn);
+  const value = new Buffer(passphrase);
+  const hash = bitcore.crypto.Hash.sha256(value);
+  const bn = bitcore.crypto.BN.fromBuffer(hash);
+  const privateKey = new bitcore.PrivateKey(bn);
   //var address = privateKey.toAddress();
   //console.log('Created private key', address);
 
   // Login using the keypair
-  var keypair = storj.KeyPair(privateKey.toWIF());
+  const keypair = storj.KeyPair(privateKey.toWIF());
   client = storj.BridgeClient(api, { keyPair: keypair });
 
   //Check if Login successful
@@ -125,6 +123,7 @@ app.get('/api/auth', (req, res) => {
       console.log('Logged in with keypair');
       req.session.authenticated = true;
       req.session.passphrase = passphrase;
+      req.session.userdir = USER_DIR + keys[0].user;
       res.json({isLoggedIn: true});
       return;
     }
@@ -172,10 +171,8 @@ app.get('/api/files', (req, res) => {
 
   console.log('**** Executing /api/files ****');
 
-  var bucketid = req.query.bucketid;
+  const bucketid = req.query.bucketid;
   req.session.bucketid = bucketid;
-
-  console.log(bucketid);
 
   if (!bucketid) {
     res.json({isFiles: false});
@@ -198,91 +195,95 @@ app.get('/api/files', (req, res) => {
 
 });
 
-
-app.post('/api/dzupload', upload.single('file'),  (req, res) => {
+//Upload
+app.post('/api/upload', upload.single('file'),  (req, res) => {
 
   console.log('**** Executing /api/upload ****');
 
   if (req.file && req.file.originalname) {
 
-    console.log(`Received file ${req.file.originalname}`);
+    console.log('File Name', req.file.originalname);
+    console.log('Buffer', req.file.buffer);
 
-    var bucketid = req.session.bucketid;
-    var readbuffer = Buffer.alloc(Buffer.byteLength(req.file.buffer, 'hex'), req.file.buffer);
-
+    const bucketid = req.session.bucketid;
     console.log('Bucket', bucketid);
-    console.log('Buffer', readbuffer);
-    console.log('Buffer length', Buffer.byteLength(req.file.buffer, 'hex'));
 
-    client.getPublicKeys(function(err, keys) {
-      if (err) {
-        return console.log('error', err.message);
-      }
+    const userdir = req.session.userdir;
+    console.log('User Directory', userdir);
 
-      var user = keys[0].user;
-      var userdir = USER_DIR + user;
-      var unencryptpath = 'uploads/' + req.file.originalname;
-      var encryptpath = userdir + '/' + req.file.filename + '.crypt';
+    const encryptpath = userdir + '/' + req.file.originalname + '.crypt';
+    console.log('Encrypted File Path', encryptpath);
 
-      console.log('Uploading file to', bucketid);
-      console.log('Key Ring Directory', userdir);
-      console.log('Key Ring Passphrase', req.session.passphrase);
-      console.log('Encrypted File Path', encryptpath);
+    const keyring = storj.KeyRing(userdir, req.session.passphrase);
 
-      var keyring = storj.KeyRing(userdir, req.session.passphrase);
-      if (err) {
-        console.log('error', err.message);
-      }
-      if (keyring) {
-        console.log('Created keyring');
-      }
+    if (!keyring) {
+      console.log('Failed to create keyring', err.message);
+      res.json({isUploaded: false});
+      return;
+    }
+    else {
+      console.log('Created keyring');
+    }
 
-      // Prepare to encrypt file for upload
-      var secret = new storj.DataCipherKeyIv();
-      var encrypter = new storj.EncryptStream(secret);
+    //Read file stream
+    const bufferStream = new stream.PassThrough();
+    const filebuffer = Buffer.from(req.file.buffer);
+    bufferStream.end(filebuffer);
 
-      // Encrypt the file to be uploaded and store it temporarily
-      fs.createReadStream(readbuffer)
-        .pipe(encrypter)
-        .pipe(fs.createWriteStream(encryptpath))
-        .on('finish', function() {
-          console.log('Finished encrypting');
+    // Prepare to encrypt file for upload
+    const secret = new storj.DataCipherKeyIv();
+    const encrypter = new storj.EncryptStream(secret);
 
-        // Create token for uploading to bucket by bucketId
-        client.createToken(bucketid, 'PUSH', function(err, token) {
+    // Encrypt the file to be uploaded and store it temporarily
+    bufferStream
+      .pipe(encrypter)
+      .pipe(fs.createWriteStream(encryptpath))
+      .on('finish', function() {
+
+      console.log('Finished encrypting');
+
+      // Create token for uploading to bucket by bucketId
+      client.createToken(bucketid, 'PUSH', function(err, token) {
+
+        if (err) {
+          console.log('Failed to create token', err.message);
+          res.json({isUploaded: false});
+          return;
+        }
+
+        if (token) {
+          console.log('Created token');
+        }
+
+        // Store the file using the bucketId, token, and encrypted file
+        client.storeFileInBucket(bucketid, token.token, encryptpath,
+        function(err, file) {
           if (err) {
-            console.log('error', err.message);
+            console.log('Failed store file in bucket', err.message);
+            res.json({isUploaded: false});
+            return;
           }
-          if (token) {
-            console.log('Created token for file');
-          }
 
-          // Store the file using the bucketId, token, and encrypted file
-          console.log('Attempting to store file in bucket');
-          client.storeFileInBucket(bucketid, token.token, encryptpath,
-            function(err, file) {
-              if (err) {
-                return console.log('error', err.message);
-              }
-              console.log('Stored file in bucket');
+          console.log('Stored file in bucket');
 
-              // Save key for access to download file
-              keyring.set(file.id, secret);
+          // Save key for access to download file
+          keyring.set(file.id, secret);
 
-              // Delete tmp file
-              fs.unlink(encryptpath, function(err) {
-                if (err) {
-                  return console.log(err);
-                }
-                console.log('Temporary encrypted file deleted');
-              })
+          // Delete tmp file
+          fs.unlink(encryptpath, function(err) {
+            if (err) {
+              return console.log(err);
+            }
+            console.log('Temporary encrypted file deleted');
+          })
 
-              res.json({isUploaded: true});
-              return;
+          res.json({isUploaded: true});
+          return;
 
-          });
         });
+
       });
+
     });
 
   }
@@ -291,87 +292,6 @@ app.post('/api/dzupload', upload.single('file'),  (req, res) => {
     return;
   }
 
-});
-
-//Upload
-app.get('/api/upload', (req, res) => {
-
-  console.log('**** Executing /api/upload ****');
-
-  var bucketid = req.query.bucketid;
-
-  // Select the file to be uploaded
-  var filepath = './client/public/grumpy.jpg';
-
-  // Path to temporarily store encrypted version of file to be uploaded
-  var tmppath = filepath + '.crypt';
-
-  client.getPublicKeys(function(err, keys) {
-    if (err) {
-      return console.log('error', err.message);
-    }
-
-    var user = keys[0].user
-
-    console.log('Uploading file to', bucketid);
-    console.log('Key Ring Directory', KEYRING_DIR + user);
-    console.log('Key Ring Passphrase', req.session.passphrase);
-
-    var keyring = storj.KeyRing(KEYRING_DIR + user, 'delay chuckle marine denial float pond right detect tomorrow cloud solar warrior');
-    if (err) {
-      console.log('error', err.message);
-    }
-    if (keyring) {
-      console.log('Created keyring');
-    }
-
-    // Prepare to encrypt file for upload
-    var secret = new storj.DataCipherKeyIv();
-    var encrypter = new storj.EncryptStream(secret);
-
-    // Encrypt the file to be uploaded and store it temporarily
-    fs.createReadStream(filepath)
-      .pipe(encrypter)
-      .pipe(fs.createWriteStream(tmppath))
-      .on('finish', function() {
-        console.log('Finished encrypting');
-
-      // Create token for uploading to bucket by bucketId
-      client.createToken(bucketid, 'PUSH', function(err, token) {
-        if (err) {
-          console.log('error', err.message);
-        }
-        if (token) {
-          console.log('Created token for file');
-        }
-
-        // Store the file using the bucketId, token, and encrypted file
-        console.log('Attempting to store file in bucket');
-        client.storeFileInBucket(bucketid, token.token, tmppath,
-          function(err, file) {
-            if (err) {
-              return console.log('error', err.message);
-            }
-            console.log('Stored file in bucket');
-
-            // Save key for access to download file
-            keyring.set(file.id, secret);
-
-            // Delete tmp file
-            fs.unlink(tmppath, function(err) {
-              if (err) {
-                return console.log(err);
-              }
-              console.log('Temporary encrypted file deleted');
-            })
-
-            res.json({isUploaded: true});
-            return;
-
-        });
-      });
-    });
-  });
 });
 
 //Download
@@ -447,21 +367,21 @@ app.get('/api/generate', (req, res) => {
   console.log('**** Executing /api/generate ****');
 
   // Create private key from passphrase
-  var passphrase = new mnemonic();
+  const passphrase = new mnemonic();
   console.log('Generated passphrase', passphrase.toString());
 
-  var value = new Buffer(passphrase.toString());
-  var hash = bitcore.crypto.Hash.sha256(value);
-  var bn = bitcore.crypto.BN.fromBuffer(hash);
-  var privateKey = new bitcore.PrivateKey(bn);
-  var wif = privateKey.toWIF();
+  const value = new Buffer(passphrase.toString());
+  const hash = bitcore.crypto.Hash.sha256(value);
+  const bn = bitcore.crypto.BN.fromBuffer(hash);
+  const privateKey = new bitcore.PrivateKey(bn);
+  const wif = privateKey.toWIF();
   console.log('WIF encoded key', privateKey.toWIF());
 
   // Generate keypair for Storj Network
-  var keypair = storj.KeyPair(privateKey.toWIF());
+  const keypair = storj.KeyPair(privateKey.toWIF());
   console.log('Generated Storj keypair', keypair.getPublicKey());
 
-  var dir = './.users/' + keypair.getPublicKey();
+  const dir = './.users/' + keypair.getPublicKey();
   if (!fs.existsSync(dir)){
     fs.mkdirSync(dir);
     //fs.writeFileSync(dir + '/private.key', keypair.getPrivateKey());
