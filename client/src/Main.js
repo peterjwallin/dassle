@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 import DropzoneComponent from 'react-dropzone-component';
-import {BucketList} from './BucketList';
-import {FileList} from './FileList';
+import {BucketList} from './Main/BucketList';
+import {FileList} from './Main/FileList';
 import {Buckets} from './Client';
 import {Files} from './Client';
 import './css/filepicker.css';
@@ -117,16 +117,10 @@ class Main extends Component {
   //Upload Pane
   renderDropZone() {
 
-    const bucket = this.state.bucketID;
     const handleShowMyFiles = this.handleShowMyFiles;
 
-    //Upload Functions
-    function handleCompletedUploads(bucket, func, cb) {
-      handleShowMyFiles();
-    }
-
     var completeCallback = function() {
-      handleCompletedUploads(bucket, handleShowMyFiles);
+      handleShowMyFiles();
     }
 
     var componentConfig = {
