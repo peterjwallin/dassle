@@ -51,7 +51,10 @@ const app = express();
 dotenv.load();
 app.set('port', (process.env.PORT || 3001));
 if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(__dirname + '/client/public'));
+  app.use(express.static('client/build'));
+}
+else {
+  app.use(express.static(__dirname + 'client/public'));
 }
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -84,14 +87,16 @@ app.get('/api/status', (req, res) => {
 });
 
 //Authentication
-app.get('/api/auth', (req, res) => {
+/* app.get('/api/auth', (req, res) => { */
+app.post('/api/auth', (req, res) => {
 
   console.log('**** Executing /api/auth ****');
 
   req.session.authenticated = false;
   client = null;
 
-  const passphrase = req.query.passphrase;
+  /* const passphrase = req.query.passphrase; */
+  const passphrase = req.body.passphrase;
 
   if (!passphrase) {
     res.json({isLoggedIn: false});

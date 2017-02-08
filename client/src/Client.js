@@ -1,4 +1,4 @@
-export function UserStatus(query, cb) {
+export function UserStatus(param, cb) {
   return fetch(`api/status`, {
     method: 'GET',
     accept: 'application/json',
@@ -8,9 +8,12 @@ export function UserStatus(query, cb) {
     .then(cb);
 }
 
-export function Authenticate(query, cb) {
-  return fetch(`api/auth?passphrase=${query}`, {
-    method: 'GET',
+export function Authenticate(param, cb) {
+  return fetch(`api/auth`, {
+    method: 'POST',
+    mode: 'cors',
+    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+    body: 'passphrase=' + param,
     accept: 'application/json',
     credentials: 'include',
   }).then(checkStatus)
@@ -18,7 +21,7 @@ export function Authenticate(query, cb) {
     .then(cb);
 }
 
-export function Logout(query, cb) {
+export function Logout(param, cb) {
   return fetch(`api/logout`, {
     method: 'GET',
     accept: 'application/json',
@@ -28,7 +31,7 @@ export function Logout(query, cb) {
     .then(cb);
 }
 
-export function Buckets(query, cb) {
+export function Buckets(param, cb) {
   return fetch(`api/buckets`, {
     method: 'GET',
     accept: 'application/json',
@@ -38,8 +41,8 @@ export function Buckets(query, cb) {
     .then(cb);
 }
 
-export function Files(query, cb) {
-  return fetch(`api/files?bucketid=${query}`, {
+export function Files(param, cb) {
+  return fetch(`api/files?bucketid=${param}`, {
     method: 'GET',
     accept: 'application/json',
     credentials: 'include',
