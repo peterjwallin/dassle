@@ -8,30 +8,32 @@ class Nav extends Component {
 
   render() {
 
-      return (
+    console.log('Rendering Nav');
 
-        <nav className="navbar navbar-default navbar-static-top">
-          <div className="navbar-header">
-            <a className="navbar-brand" href="/">
-              <img src="/logo.png" className="App-logo" alt="Dassle"/>
-            </a>
-          </div>
-          <div className="container">
-            <ul className="nav navbar-nav navbar-right">
-              <li className="navbar-left">
-                  <a className="a-home" href="/"><span className="glyphicon glyphicon-home"></span> Home</a>
-              </li>
-              <li className="navbar-left">
-                  <a className="a-about" href="#"><span className="glyphicon glyphicon-user"></span> About</a>
-              </li>
-              <li className="navbar-right">
-                {this.renderLoginButton()}
-              </li>
-            </ul>
-          </div>
-        </nav>
+    return (
 
-      );
+      <nav className="navbar navbar-default navbar-static-top">
+        <div className="navbar-header">
+          <a className="navbar-brand" href="/">
+            <img src="/logo.png" className="App-logo" alt="Dassle"/>
+          </a>
+        </div>
+        <div className="container">
+          <ul className="nav navbar-nav navbar-right">
+            <li className="navbar-left">
+                <a className="a-home" href="/"><span className="glyphicon glyphicon-home"></span> Home</a>
+            </li>
+            <li className="navbar-left">
+                <a className="a-about" href="#"><span className="glyphicon glyphicon-user"></span> About</a>
+            </li>
+            <li className="navbar-right">
+              {this.renderLoginButton()}
+            </li>
+          </ul>
+        </div>
+      </nav>
+
+    );
 
   }
 

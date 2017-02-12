@@ -13,11 +13,10 @@ class App extends Component {
     this.handleLoginClick = this.handleLoginClick.bind(this);
     this.handleLogoutClick = this.handleLogoutClick.bind(this);
     this.handleAuthClick = this.handleAuthClick.bind(this);
-    this.handleMainClick = this.handleMainClick.bind(this);
     this.state = {
       isLoggedIn: false,
       loginAttempt: false,
-      showWelcome: false,
+      showWelcome: true,
       showLogin: false,
       showMain: false
     };
@@ -26,52 +25,52 @@ class App extends Component {
   componentWillMount() {
     UserStatus('', (result) => {
       if (result.isLoggedIn) {
-        this.setState({isLoggedIn: true});
-        this.setState({loginAttempt: false});
-        this.setState({showWelcome: false});
-        this.setState({showLogin: false});
-        this.setState({showMain: true});
-      } else {
-        this.setState({showWelcome: true});
+        this.setState({
+          isLoggedIn: true,
+          loginAttempt: false,
+          showWelcome: false,
+          showLogin: false,
+          showMain: true
+        });
       }
     });
   }
 
   handleLoginClick() {
-    this.setState({loginAttempt: false});
-    this.setState({showWelcome: false});
-    this.setState({showLogin: true});
+    this.setState({
+      loginAttempt: false,
+      showWelcome: false,
+      showLogin: true
+    });
   }
 
   handleLogoutClick() {
     Logout('', (result) => {
       if (result.isLoggedOut) {
-        this.setState({isLoggedIn: false});
-        this.setState({loginAttempt: false});
-        this.setState({showWelcome: true});
-        this.setState({showLogin: false});
-        this.setState({showMain: false});
+        this.setState({
+          isLoggedIn: false,
+          loginAttempt: false,
+          showWelcome: true,
+          showLogin: false,
+          showMain: false
+        });
       }
     });
   }
 
   handleAuthClick(value) {
     Authenticate(value, (result) => {
-      if (result.isLoggedIn) {
-        this.setState({isLoggedIn: true});
-        this.setState({loginAttempt: false});
-        this.setState({showWelcome: false});
-        this.setState({showLogin: false});
-        this.setState({showMain: true});
+      var loginAttempt = false;
+      if (!result.isLoggedIn) {
+        loginAttempt = true;
       }
-      else {
-        this.setState({loginAttempt: true});
-      }
+      this.setState({
+        isLoggedIn: result.isLoggedIn,
+        loginAttempt: loginAttempt,
+        showLogin: loginAttempt,
+        showMain: result.isLoggedIn
+      });
     });
-  }
-
-  handleMainClick() {
-    ;
   }
 
   renderNavbar() {
@@ -87,10 +86,12 @@ class App extends Component {
   }
 
   renderMainPage() {
-    return this.state.showMain? <Main onClick={this.handleMainClick}/> : null;
+    return this.state.showMain? <Main/> : null;
   }
 
   render() {
+
+    console.log('Rendering App');
 
     return (
       <div>
@@ -104,7 +105,5 @@ class App extends Component {
   }
 
 }
-
-
 
 export default App;

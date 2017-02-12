@@ -17,22 +17,19 @@
 }
 
 .btn-dass {
-  margin: 10px 0;
-  background-color: #13AFBE;
-  border-color: #13AFBE;
+  margin-bottom: 10px;
+  width: 200px;
 }
 
+/*
 .btn-dass:hover {
-  margin: 10px 0;
-  background-color: #13AFBE;
-  border-color: #13AFBE;
+  margin-bottom: 10px;
 }
 
 .btn-dass:focus {
-  margin: 10px 0;
-  background-color: #13AFBE;
-  border-color: #13AFBE;
+  margin-bottom: 10px;
 }
+*/
 
 .input-login {
   width: 700px;

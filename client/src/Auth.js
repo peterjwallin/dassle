@@ -26,6 +26,8 @@ class Auth extends Component {
 
   render () {
 
+    console.log('Rendering Auth');
+
     return (
 
       <div className="container">
@@ -41,7 +43,7 @@ class Auth extends Component {
                   <form onSubmit={this.handleSubmit}>
                     <input className="input-login" type="text" placeholder="Enter Your 12 Word Passphrase" value={this.state.passPhrase} onChange={this.handleChange}/>
                     <br />
-                    <button className="btn-login btn btn-lg btn-primary btn-dass">Login</button>
+                    <button className="btn-login btn btn-lg btn-primary">Login</button>
                   </form>
                 </div>
               </div>

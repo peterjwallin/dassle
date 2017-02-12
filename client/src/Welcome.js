@@ -16,7 +16,7 @@ class Welcome extends Component {
 
             <div className="row welcome">
               <div className="col-xs-12 text-center">
-                  <button className="btn-show-login btn btn-lg btn-primary btn-dass" onClick={this.props.onClick}>Get Started</button>
+                  <button className="btn-show-login btn btn-lg btn-primary" onClick={this.props.onClick}>Get Started</button>
               </div>
             </div>
 

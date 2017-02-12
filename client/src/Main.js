@@ -17,6 +17,7 @@ class Main extends Component {
     this.handleCreateBucketClick = this.handleCreateBucketClick.bind(this);
     this.handleDownloadClick = this.handleDownloadClick.bind(this);
     this.handleShowMyFiles = this.handleShowMyFiles.bind(this);
+    this.handleBucketDropdownClick = this.handleBucketDropdownClick.bind(this);
     this.state = {
       showBuckets: true,
       myFiles: false,
@@ -34,59 +35,77 @@ class Main extends Component {
   componentWillMount() {
     Buckets('', (result) => {
       if (result.buckets) {
-        this.setState({buckets: result.buckets});
-      } else {
-        this.setState({isBuckets: result.isBuckets});
+        this.setState({
+          isBuckets: result.isBuckets,
+          buckets: result.buckets
+        });
       }
     });
   }
 
   //Click Functions
   handleShowBucketsClick() {
-    this.setState({showBuckets:true});
-    this.setState({myFiles:false});
-    this.setState({upload:false});
-    this.setState({createBucket:false});
+    this.setState({
+      showBuckets:true,
+      myFiles:false,
+      upload:false,
+      createBucket:false
+    });
   }
 
   handleShowMyFilesClick(row) {
     Files(row.props.data.id, (result) => {
-      if (result.files) {
-        this.setState({files: result.files});
-      } else {
-        this.setState({isFiles: result.isFiles});
-      }
+      this.setState({
+        files: result.files,
+        isFiles: result.isFiles,
+        bucketID:row.props.data.id,
+        bucketName:row.props.data.name,
+        showBuckets:false,
+        myFiles:true
+      });
     });
-    this.setState({bucketID:row.props.data.id});
-    this.setState({bucketName:row.props.data.name});
-    this.setState({showBuckets:false});
-    this.setState({myFiles:true});
-    this.setState({upload:false});
-    this.setState({createBucket:false});
+  }
+
+  handleBucketDropdownClick(event) {
+    const bucketid = event.target.id;
+    const bucketname = event.target.name;
+    Files(bucketid, (result) => {
+      this.setState({
+        files: result.files,
+        isFiles: result.isFiles,
+        bucketID:bucketid,
+        bucketName:bucketname,
+        showBuckets:false,
+        myFiles:true
+      });
+    });
   }
 
   handleShowMyFiles() {
     Files(this.state.bucketID, (result) => {
-      if (result.files) {
-        this.setState({files: result.files});
-      } else {
-        this.setState({isFiles: result.isFiles});
-      }
+      this.setState({
+        files: result.files,
+        isFiles: result.isFiles
+      });
     });
   }
 
   handleUploadClick() {
-    this.setState({showBuckets:false});
-    this.setState({myFiles:false});
-    this.setState({upload:true});
-    this.setState({createBucket:false});
+    this.setState({
+      showBuckets:false,
+      myFiles:false,
+      upload:true,
+      createBucket:false
+    });
   }
 
   handleCreateBucketClick() {
-    this.setState({showBuckets:false});
-    this.setState({myFiles:false});
-    this.setState({upload:false});
-    this.setState({createBucket:true});
+    this.setState({
+      showBuckets:false,
+      myFiles:false,
+      upload:false,
+      createBucket:true
+    });
   }
 
   handleDownloadClick() {
@@ -114,48 +133,12 @@ class Main extends Component {
     return this.state.myFiles? <FileList filelist={this.state.files} onClick={this.handleDownloadClick.bind(this)} /> : null
   }
 
-  //Upload Pane
   renderDropZone() {
-
-    /*
-    const handleShowMyFiles = this.handleShowMyFiles;
-
-    var completeCallback = function() {
-      handleShowMyFiles();
-    }
-
-    var componentConfig = {
-      iconFiletypes: ['File'],
-      showFiletypeIcon: true,
-      postUrl: '/api/upload'
-    };
-
-    var djsConfig = {
-      autoProcessQueue: true,
-      addRemoveLinks: true,
-      parallelUploads: 1,
-      clickable: false,
-      maxFilesize: 100,
-      dictFileTooBig: 'File is to large',
-      maxFiles: 10,
-      dictMaxFilesExceeded: 'Exceeded maximum allowable files'
-    };
-
-    var eventHandlers = {
-      addedfile: (file) => console.log(file),
-      success: completeCallback
-    };
-
-    return this.state.myFiles? <DropzoneComponent config={componentConfig} eventHandlers={eventHandlers} djsConfig={djsConfig}/> : null
-
-    */
-
     return this.state.myFiles? <Dropzone handleShowMyFiles={this.handleShowMyFiles} /> : null
-
   }
 
   renderMyFilesHeader() {
-    return this.state.myFiles? <p>{this.state.bucketName}</p> : null
+    return this.state.myFiles? <BucketDropdown bucket={this.state.bucketName} buckets={this.state.buckets} onClick={this.handleBucketDropdownClick.bind(this)} /> : null
   }
 
   renderUpload() {
@@ -168,22 +151,21 @@ class Main extends Component {
 
   render() {
 
+    console.log('Rendering Main');
+
       return (
 
         <div className='container'>
-          <br/>
           <div className='row'>
             <div className='col-xs-2 dass-link'>{this.renderMyFilesLink()}</div>
             <div className='col-xs-2 dass-link'>{this.renderUploadLink()}</div>
             <div className='col-xs-2 dass-link'>{this.renderCreateBucketLink()}</div>
-          </div>
-          <div className='row'>
             <div className='col-xs-12'><hr/></div>
           </div>
           <div className='row'>
             <div className='col-xs-12 dass-folder'>{this.renderBuckets()}</div>
             <div className='col-xs-12'>{this.renderMyFilesHeader()}</div>
-            <div className='col-xs-12 dass-file'>{this.renderFiles()}</div>
+            <div className='col-xs-12 dass-file'><br/>{this.renderFiles()}</div>
             <div className='col-xs-12'>{this.renderUpload()}</div>
             <div className='col-xs-12'>{this.renderCreateBucket()}</div>
           </div>
@@ -214,6 +196,27 @@ function UploadLink(props) {
 function CreateBucketLink(props) {
   return (
     <a href='#' onClick={props.onClick}><span className='glyphicon glyphicon-folder-open'></span>&nbsp;&nbsp;Create Bucket</a>
+  );
+}
+
+function BucketDropdown(props) {
+
+  const buckets = props.buckets;
+  const listItems = buckets.map((bucket) =>
+    <li key={bucket.id}><a href='#' onClick={props.onClick} id={bucket.id} name={bucket.name}>{bucket.name}</a></li>
+  );
+
+  return (
+
+    <div className="btn-group">
+      <button type="button" className="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        {props.bucket}&nbsp;<span className="caret"></span>
+      </button>
+      <ul className="dropdown-menu">
+        {listItems}
+      </ul>
+    </div>
+
   );
 }
 

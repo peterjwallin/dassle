@@ -12,26 +12,8 @@ var stream = require('stream');
 //Storj variables
 const api = 'https://api.storj.io';
 var client;
-/*
-var STORJ_EMAIL = process.env.STORJ_EMAIL;
-var STORJ_PASSWORD = process.env.STORJ_PASSWORD;
-var storjCredentials = {
-  email:STORJ_EMAIL,
-  password:STORJ_PASSWORD
-};
-*/
 
 //Multer variables
-/*
-var storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, 'uploads/')
-  },
-  filename: function (req, file, cb) {
-    cb(null, file.originalname)
-  }
-})
-*/
 const storage = multer.memoryStorage()
 const upload = multer({
   storage: storage,
@@ -42,8 +24,7 @@ const upload = multer({
   }
 });
 
-// Key variables
-//var KEYRING_PASS = process.env.KEYRING_PASS;
+// Key ring directory
 const USER_DIR = './.users/';
 
 //Setup app
@@ -73,12 +54,7 @@ app.get('/api/status', (req, res) => {
   var status = false;
 
   if (req.session.authenticated && client) {
-
-    console.log('User is Logged In');
     status = true;
-
-  } else {
-    console.log('User is Logged Out');
   }
 
   res.json({isLoggedIn: status});
@@ -118,14 +94,12 @@ app.post('/api/auth', (req, res) => {
   //Check if Login successful
   client.getPublicKeys(function(err, keys) {
     if (err) {
-      console.log('Authentication failed');
       req.session.authenticated = false;
       res.json({isLoggedIn: false});
       return;
     }
     else {
       //Login was successful
-      console.log('Logged in with keypair');
       req.session.authenticated = true;
       req.session.passphrase = passphrase;
       req.session.userdir = USER_DIR + keys[0].user;
@@ -160,6 +134,7 @@ app.get('/api/buckets', (req, res) => {
     }
     else {
       if (buckets) {
+        console.log(buckets);
         res.json({buckets});
         return;
       } else {
