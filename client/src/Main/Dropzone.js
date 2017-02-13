@@ -5,6 +5,8 @@ class Dropzone extends Component {
 
   render() {
 
+    console.log('Rendering Dropzone');
+
     const handleShowMyFiles = this.props.handleShowMyFiles;
 
     var completeCallback = function() {

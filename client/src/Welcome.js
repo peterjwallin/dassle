@@ -4,6 +4,8 @@ class Welcome extends Component {
 
   render() {
 
+      console.log('Rendering Welcome');
+
       return (
 
           <div className="container">

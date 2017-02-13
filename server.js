@@ -134,7 +134,6 @@ app.get('/api/buckets', (req, res) => {
     }
     else {
       if (buckets) {
-        console.log(buckets);
         res.json({buckets});
         return;
       } else {

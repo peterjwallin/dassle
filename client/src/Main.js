@@ -19,11 +19,12 @@ class Main extends Component {
     this.handleShowMyFiles = this.handleShowMyFiles.bind(this);
     this.handleBucketDropdownClick = this.handleBucketDropdownClick.bind(this);
     this.state = {
-      showBuckets: true,
+      showSubNav: false,
+      showBuckets: false,
       myFiles: false,
       upload: false,
       createBucket: false,
-      isBuckets: true,
+      isBuckets: false,
       buckets: [],
       bucketID: null,
       bucketName: null,
@@ -34,12 +35,18 @@ class Main extends Component {
 
   componentWillMount() {
     Buckets('', (result) => {
+      var isBuckets = false;
+      var buckets = [];
       if (result.buckets) {
-        this.setState({
-          isBuckets: result.isBuckets,
-          buckets: result.buckets
-        });
+          isBuckets = true;
+          buckets = result.buckets;
       }
+      this.setState({
+        showSubNav: true,
+        showBuckets: true,
+        isBuckets: isBuckets,
+        buckets: buckets
+      });
     });
   }
 
@@ -114,39 +121,39 @@ class Main extends Component {
 
   // Render Components
   renderMyFilesLink() {
-    return <MyFilesLink onClick={this.handleShowBucketsClick} />
+    return this.state.showSubNav? <MyFilesLink onClick={this.handleShowBucketsClick} /> : null;
   }
 
   renderUploadLink() {
-    return <UploadLink onClick={this.handleUploadClick} />
+    return this.state.showSubNav? <UploadLink onClick={this.handleUploadClick} /> : null;
   }
 
   renderCreateBucketLink() {
-    return <CreateBucketLink onClick={this.handleCreateBucketClick} />
+    return this.state.showSubNav? <CreateBucketLink onClick={this.handleCreateBucketClick} /> : null;
   }
 
   renderBuckets() {
-    return this.state.showBuckets? <BucketList buckets={this.state.buckets} onClick={this.handleShowMyFilesClick.bind(this)} /> : null
+    return this.state.showBuckets? <BucketList buckets={this.state.buckets} onClick={this.handleShowMyFilesClick.bind(this)} /> : null;
   }
 
   renderFiles() {
-    return this.state.myFiles? <FileList filelist={this.state.files} onClick={this.handleDownloadClick.bind(this)} /> : null
+    return this.state.myFiles? <FileList filelist={this.state.files} onClick={this.handleDownloadClick.bind(this)} /> : null;
   }
 
   renderDropZone() {
-    return this.state.myFiles? <Dropzone handleShowMyFiles={this.handleShowMyFiles} /> : null
+    return this.state.myFiles? <Dropzone handleShowMyFiles={this.handleShowMyFiles} /> : null;
   }
 
   renderMyFilesHeader() {
-    return this.state.myFiles? <BucketDropdown bucket={this.state.bucketName} buckets={this.state.buckets} onClick={this.handleBucketDropdownClick.bind(this)} /> : null
+    return this.state.myFiles? <BucketDropdown bucket={this.state.bucketName} buckets={this.state.buckets} onClick={this.handleBucketDropdownClick.bind(this)} /> : null;
   }
 
   renderUpload() {
-    return this.state.upload? <h1>Upload File</h1> : null
+    return this.state.upload? <h1>Upload File</h1> : null;
   }
 
   renderCreateBucket() {
-    return this.state.createBucket? <h1>CreateBucket</h1> : null
+    return this.state.createBucket? <h1>CreateBucket</h1> : null;
   }
 
   render() {

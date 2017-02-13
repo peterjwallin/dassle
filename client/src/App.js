@@ -14,9 +14,10 @@ class App extends Component {
     this.handleLogoutClick = this.handleLogoutClick.bind(this);
     this.handleAuthClick = this.handleAuthClick.bind(this);
     this.state = {
+      showNav: false,
       isLoggedIn: false,
       loginAttempt: false,
-      showWelcome: true,
+      showWelcome: false,
       showLogin: false,
       showMain: false
     };
@@ -24,15 +25,17 @@ class App extends Component {
 
   componentWillMount() {
     UserStatus('', (result) => {
+      var welcome = true;
+      var status = result.isLoggedIn;
       if (result.isLoggedIn) {
-        this.setState({
-          isLoggedIn: true,
-          loginAttempt: false,
-          showWelcome: false,
-          showLogin: false,
-          showMain: true
-        });
+        welcome = false;
       }
+      this.setState({
+        showNav: true,
+        isLoggedIn: status,
+        showWelcome: welcome,
+        showMain: status
+      })
     });
   }
 
@@ -74,7 +77,7 @@ class App extends Component {
   }
 
   renderNavbar() {
-    return <Nav isLoggedIn={this.state.isLoggedIn} Logout={this.handleLogoutClick} Login={this.handleLoginClick}/>;
+    return this.state.showNav? <Nav isLoggedIn={this.state.isLoggedIn} Logout={this.handleLogoutClick} Login={this.handleLoginClick}/> : null;
   }
 
   renderWelcomePage() {
@@ -90,8 +93,6 @@ class App extends Component {
   }
 
   render() {
-
-    console.log('Rendering App');
 
     return (
       <div>
