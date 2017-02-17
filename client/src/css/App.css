@@ -31,6 +31,21 @@
 }
 */
 
+.btn-upload {
+  background-color: #F37060;
+  color: #fff;
+}
+
+.btn-upload:hover {
+  background-color: #F37060;
+  color: #fff;
+}
+
+.btn-upload:focus {
+  background-color: #F37060;
+  color: #fff;
+}
+
 .input-login {
   width: 700px;
   padding: 5px 10px;

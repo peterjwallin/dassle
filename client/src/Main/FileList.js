@@ -1,5 +1,6 @@
 import React, {Component} from 'react';
 import Griddle from 'griddle-react';
+import '../css/Griddle.css';
 
 class FileList extends Component {
 
@@ -40,7 +41,7 @@ class FileList extends Component {
         "columnName": "mimetype",
         "order": 4,
         "locked": false,
-        "visible": true,
+        "visible": false,
         "displayName": "Mime Type"
       }
     ];
@@ -48,9 +49,21 @@ class FileList extends Component {
 
     return (
 
-      <Griddle results={this.props.filelist} showFilter={false} columnMetadata={colStyle}
-                showSettings={false} columns={['filename', 'size', 'id', 'mimetype']} resultsPerPage={5} useGriddleStyles={true}
-                noDataMessage={null} initialSort={'filename'} onRowClick={this.props.onClick}/> : null
+      <Griddle
+        results={this.props.filelist}
+        showFilter={false}
+        columnMetadata={colStyle}
+        noDataMessage={'There are no files in this Bucket!'}
+        showSettings={false}
+        columns={['filename', 'size', 'id']}
+        resultsPerPage={5}
+        useGriddleStyles={false}
+        useFixedHeader={true}
+        initialSort={'filename'}
+        enableInfiniteScroll={true}
+        bodyHeight={500}
+        onRowClick={this.props.onClick}
+      /> : null
 
     );
 

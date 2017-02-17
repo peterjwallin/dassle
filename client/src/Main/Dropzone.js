@@ -1,11 +1,17 @@
 import React, {Component} from 'react';
 import DropzoneComponent from 'react-dropzone-component';
+import '../css/filepicker.css';
+import '../css/dropzone.css';
 
 class Dropzone extends Component {
 
   render() {
 
     console.log('Rendering Dropzone');
+
+    var processingCallback = function() {
+      console.log('Processing...');
+    }
 
     const handleShowMyFiles = this.props.handleShowMyFiles;
 
@@ -33,6 +39,7 @@ class Dropzone extends Component {
 
     var eventHandlers = {
       /* addedfile: (file) => console.log(file), */
+      processing: processingCallback,
       success: completeCallback
     };
 

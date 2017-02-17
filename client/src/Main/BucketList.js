@@ -1,5 +1,6 @@
 import React, {Component} from 'react';
 import Griddle from 'griddle-react';
+import '../css/Griddle.css';
 
 class BucketList extends Component {
 
@@ -47,9 +48,21 @@ class BucketList extends Component {
 
     return (
 
-      <Griddle results={this.props.buckets} showFilter={false} columnMetadata={colStyle}
-              showSettings={false} columns={['name', 'created', 'id']} resultsPerPage={9} useGriddleStyles={true}
-              noDataMessage={null} initialSort={'name'} onRowClick={this.props.onClick}/> : null
+      <Griddle
+        results={this.props.buckets}
+        showFilter={false}
+        columnMetadata={colStyle}
+        enableInfiniteScroll={true}
+        bodyHeight={600}
+        showSettings={false}
+        columns={['name', 'created', 'id']}
+        resultsPerPage={9}
+        useGriddleStyles={false}
+        useFixedHeader={true}
+        noDataMessage={'You need to create a Bucket. Click on the Create Bucket link.'}
+        initialSort={'name'}
+        onRowClick={this.props.onClick}
+      /> : null
 
     );
 

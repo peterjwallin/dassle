@@ -330,7 +330,7 @@
       height: 16px;
       left: 50%;
       top: 50%;
-      margin-top: -8px;
+      margin-top: 20px; /* Custom edit - pjw */
       width: 80px;
       margin-left: -40px;
       background: rgba(255, 255, 255, 0.9);

@@ -1,5 +1,5 @@
 .griddle-container{
-  border:0px solid #DDD;
+  border:1px solid #13AFBE;
 }
 
 .griddle .top-section{
@@ -24,7 +24,7 @@
 
 .griddle .griddle-settings{
   background-color:#FFF;
-  border:1px solid #DDD;
+  border:1px solid #13AFBE;
   color:#222;
   padding:10px;
   margin-bottom:10px;
@@ -47,15 +47,16 @@
 }
 
 .griddle th{
-  background-color:#EDEDEF;
+  background-color:#13AFBE;
   border:0px;
-  border-bottom:1px solid #DDD;
-  color:#222;
+  /*border-bottom:1px solid #DDD;*/
+  color:#fff;
   padding:5px;
 }
 
 .griddle td{
-  padding:5px;
+  padding:10px;
+  border-bottom:1px solid #DDD;
   background-color:#FFF;
   border-top-color:#DDD;
   color:#222;

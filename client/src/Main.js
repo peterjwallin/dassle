@@ -4,8 +4,6 @@ import {FileList} from './Main/FileList';
 import {Dropzone} from './Main/Dropzone';
 import {Buckets} from './Client';
 import {Files} from './Client';
-import './css/filepicker.css';
-import './css/dropzone.css';
 
 class Main extends Component {
 
@@ -144,8 +142,12 @@ class Main extends Component {
     return this.state.myFiles? <Dropzone handleShowMyFiles={this.handleShowMyFiles} /> : null;
   }
 
-  renderMyFilesHeader() {
+  renderBucketDropdown() {
     return this.state.myFiles? <BucketDropdown bucket={this.state.bucketName} buckets={this.state.buckets} onClick={this.handleBucketDropdownClick.bind(this)} /> : null;
+  }
+
+  renderUploadButton() {
+    return this.state.myFiles? <UploadButton /> : null;
   }
 
   renderUpload() {
@@ -167,18 +169,23 @@ class Main extends Component {
             <div className='col-xs-2 dass-link'>{this.renderMyFilesLink()}</div>
             <div className='col-xs-2 dass-link'>{this.renderUploadLink()}</div>
             <div className='col-xs-2 dass-link'>{this.renderCreateBucketLink()}</div>
+          </div>
+          <div className='row'>
             <div className='col-xs-12'><hr/></div>
           </div>
           <div className='row'>
             <div className='col-xs-12 dass-folder'>{this.renderBuckets()}</div>
-            <div className='col-xs-12'>{this.renderMyFilesHeader()}</div>
-            <div className='col-xs-12 dass-file'><br/>{this.renderFiles()}</div>
             <div className='col-xs-12'>{this.renderUpload()}</div>
             <div className='col-xs-12'>{this.renderCreateBucket()}</div>
+            <div className='col-xs-6 text-left'>{this.renderBucketDropdown()}</div>
+            <div className='col-xs-6 text-right'>{this.renderUploadButton()}</div>
           </div>
           <div className='row'>
-            <br/>
-            <div className='col-xs-12'>{this.renderDropZone()}</div>
+            <div className="collapse" id="dropZone">
+              <br/>
+              <div className='col-xs-12'>{this.renderDropZone()}</div>
+            </div>
+            <div className='col-xs-12 dass-file'><br/>{this.renderFiles()}</div>
           </div>
         </div>
 
@@ -222,6 +229,19 @@ function BucketDropdown(props) {
       <ul className="dropdown-menu">
         {listItems}
       </ul>
+    </div>
+
+  );
+}
+
+function UploadButton(props) {
+
+  return (
+
+    <div>
+      <button className="btn btn-upload" type="button" data-toggle="collapse" data-target="#dropZone" aria-expanded="false" aria-controls="dropZone">
+        <span className='glyphicon glyphicon-cloud-upload'></span>&nbsp;Upload
+      </button>
     </div>
 
   );
