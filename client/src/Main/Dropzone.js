@@ -7,6 +7,8 @@ class Dropzone extends Component {
 
   render() {
 
+    var ReactDOMServer = require('react-dom/server');
+
     console.log('Rendering Dropzone');
 
     var processingCallback = function() {
@@ -34,7 +36,7 @@ class Dropzone extends Component {
       maxFilesize: 100,
       dictFileTooBig: 'File is to large',
       maxFiles: 10,
-      dictMaxFilesExceeded: 'Exceeded maximum allowable files'
+      dictMaxFilesExceeded: 'Exceeded maximum allowable files',
     };
 
     var eventHandlers = {

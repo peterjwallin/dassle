@@ -63,7 +63,7 @@ class FileList extends Component {
         enableInfiniteScroll={true}
         bodyHeight={500}
         onRowClick={this.props.onClick}
-      /> : null
+      />
 
     );
 

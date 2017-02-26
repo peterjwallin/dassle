@@ -51,6 +51,15 @@ export function Files(param, cb) {
     .then(cb);
 }
 
+export function Download(fileid, filename, cb) {
+  return fetch(`api/download?fileid=${fileid}&filename=${filename}`, {
+    method: 'GET',
+    credentials: 'include',
+  }).then(checkStatus)
+    .then(returnBlob)
+    .then(cb);
+}
+
 function checkStatus(response) {
   if (response.status >= 200 && response.status < 300) {
     return response;
@@ -58,11 +67,15 @@ function checkStatus(response) {
     const error = new Error(`HTTP Error ${response.statusText}`);
     error.status = response.statusText;
     error.response = response;
-    console.log(error); // eslint-disable-line no-console
+    //console.log(error); // eslint-disable-line no-console
     throw error;
   }
 }
 
 function parseJSON(response) {
   return response.json();
+}
+
+function returnBlob(response){
+  return response.blob();
 }

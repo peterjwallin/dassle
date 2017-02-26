@@ -338,8 +338,8 @@
       border-radius: 8px;
       overflow: hidden; }
       .dropzone .dz-preview .dz-progress .dz-upload {
-        background: #333;
-        background: linear-gradient(to bottom, #666, #444);
+        background: #F37060; /* Custom edit - pjw */
+        /* background: linear-gradient(to bottom, #666, #444); */ /* Comment out - pjw */
         position: absolute;
         top: 0;
         left: 0;

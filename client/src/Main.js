@@ -4,6 +4,7 @@ import {FileList} from './Main/FileList';
 import {Dropzone} from './Main/Dropzone';
 import {Buckets} from './Client';
 import {Files} from './Client';
+import {Download} from './Client';
 
 class Main extends Component {
 
@@ -28,6 +29,7 @@ class Main extends Component {
       bucketName: null,
       isFiles: false,
       files: [],
+      isDownload: false
     };
   }
 
@@ -113,8 +115,12 @@ class Main extends Component {
     });
   }
 
-  handleDownloadClick() {
-    console.log('Need to wire up download');
+  handleDownloadClick(row) {
+    Download(row.props.data.id, row.props.data.filename, (result) => {
+      this.setState({
+        isDownload:result.isDownload
+      });
+    });
   }
 
   // Render Components

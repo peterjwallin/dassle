@@ -2,6 +2,7 @@ var express = require('express');
 var fs = require('fs');
 var storj = require('storj-lib');
 var session = require('client-sessions');
+var through = require('through');
 var mnemonic = require('bitcore-mnemonic');
 var bitcore = require('bitcore-lib');
 var dotenv = require('dotenv');
@@ -278,19 +279,30 @@ app.get('/api/download', (req, res) => {
 
   console.log('**** Executing /api/download ****');
 
-  var bucketid = req.query.bucketid;
-  var fileid = req.query.fileid;
+  /*const bucketid = req.session.bucketid; */
+  const bucketid = 'b3bc796132362dd6324a4645';
+  const fileid = req.query.fileid;
+  const filename = req.query.filename;
 
-  if (!bucketid || !fileid) {
+  console.log('bucketid...', bucketid);
+  console.log('fileid...', fileid);
+  console.log('filename...', filename);
+
+  if (!bucketid || !fileid || !filename) {
     res.json({isDownload: false});
     return;
   }
 
+  /* const userdir = req.session.userdir; */
+  const userdir = './.users/a3de7e3f-5cc7-4e5f-8aba-b1d495475f78_19cd4895565e473aaa199efccb7e1253@heroku.storj.io';
+  console.log('User Directory', userdir);
+
   console.log('Getting keyring');
-  var keyring = storj.KeyRing(KEYRING_DIR, KEYRING_PASS);
+  /* const keyring = storj.KeyRing(userdir, req.session.passphrase); */
+  const keyring = storj.KeyRing(userdir, 'delay chuckle marine denial float pond right detect tomorrow cloud solar warrior');
 
   // Where the downloaded file will be saved
-  var target = fs.createWriteStream('./public/grumpy-dwnld.jpg');
+  var target = fs.createWriteStream(userdir + '/' + filename);
 
   // Get key to download file
   console.log('Get key for fileId');
@@ -306,36 +318,47 @@ app.get('/api/download', (req, res) => {
 
     function(err, stream) {
       if (err) {
-        return console.log('error', err.message);
+        console.log('FileStream error', err.message);
+        return;
       }
 
-    // Handle stream errors
-    stream.on('error', function(err) {
-      console.log('warn', 'Failed to download shard, reason: %s', [err.message]);
-      // Delete the partial file
-      fs.unlink(filepath, function(unlinkFailed) {
-        if (unlinkFailed) {
-          return console.log('error', 'Failed to unlink partial file.');
-        }
-
-        if (!err.pointer) {
+      // Handle stream errors
+      stream.on('error', function(err) {
+        console.log('warn', 'Failed to download shard, reason: %s', [err.message]);
+        // Delete the partial file
+        fs.unlink(target, function(unlinkFailed) {
+          if (unlinkFailed) {
+            return console.log('error', 'Failed to unlink partial file.');
+          }
+          if (!err.pointer) {
             return;
-        }
-      });
-    }).pipe(through(function(chunk) {
-        received += chunk.length;
-        console.log('info', 'Received %s of %s bytes', [received, stream._length]);
-        this.queue(chunk);
-    })).pipe(decrypter)
-       .pipe(target);
+          }
+        });
 
+      }).pipe(through(function(chunk) {
+          received += chunk.length;
+          console.log('info', 'Received %s of %s bytes', [received, stream._length]);
+          this.queue(chunk);
+      })).pipe(decrypter)
+         .pipe(target)
   });
 
   // Handle Events emitted from file download stream
   target.on('finish', function() {
-    console.log('Finished downloading file');
+    console.log('Downloading File');
+    res.download(userdir + '/' + filename, filename);
   }).on('error', function(err) {
     console.log('error', err.message);
+  });
+
+  //Delete file
+  res.on('finish', function(){
+    fs.unlink(userdir + '/' + filename, function(err) {
+      if (err) {
+        return console.log(err);
+      }
+      console.log('Downloadable File Deleted');
+    });
   });
 
 });
@@ -373,6 +396,52 @@ app.get('/api/generate', (req, res) => {
       return console.log('error', err.message);
     }
     console.log('Added the keypair public key to the user account');
+  });
+
+});
+
+//Authentication with GET
+app.get('/api/authget', (req, res) => {
+
+  console.log('**** Executing /api/auth ****');
+
+  req.session.authenticated = false;
+  client = null;
+
+  const passphrase = req.query.passphrase;
+
+  if (!passphrase) {
+    res.json({isLoggedIn: false});
+    return;
+  }
+
+  //Create Private Key from Mnemonic
+  const value = new Buffer(passphrase);
+  const hash = bitcore.crypto.Hash.sha256(value);
+  const bn = bitcore.crypto.BN.fromBuffer(hash);
+  const privateKey = new bitcore.PrivateKey(bn);
+  //var address = privateKey.toAddress();
+  //console.log('Created private key', address);
+
+  // Login using the keypair
+  const keypair = storj.KeyPair(privateKey.toWIF());
+  client = storj.BridgeClient(api, { keyPair: keypair });
+
+  //Check if Login successful
+  client.getPublicKeys(function(err, keys) {
+    if (err) {
+      req.session.authenticated = false;
+      res.json({isLoggedIn: false});
+      return;
+    }
+    else {
+      //Login was successful
+      req.session.authenticated = true;
+      req.session.passphrase = passphrase;
+      req.session.userdir = USER_DIR + keys[0].user;
+      res.json({isLoggedIn: true});
+      return;
+    }
   });
 
 });

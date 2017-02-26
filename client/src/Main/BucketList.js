@@ -62,7 +62,7 @@ class BucketList extends Component {
         noDataMessage={'You need to create a Bucket. Click on the Create Bucket link.'}
         initialSort={'name'}
         onRowClick={this.props.onClick}
-      /> : null
+      />
 
     );
 
