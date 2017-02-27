@@ -7,13 +7,13 @@ class Dropzone extends Component {
 
   render() {
 
-    var ReactDOMServer = require('react-dom/server');
+    /* var ReactDOMServer = require('react-dom/server'); */
 
-    console.log('Rendering Dropzone');
-
+    /*
     var processingCallback = function() {
       console.log('Processing...');
     }
+    */
 
     const handleShowMyFiles = this.props.handleShowMyFiles;
 
@@ -32,7 +32,7 @@ class Dropzone extends Component {
       autoProcessQueue: true,
       addRemoveLinks: true,
       parallelUploads: 1,
-      clickable: false,
+      clickable: true,
       maxFilesize: 100,
       dictFileTooBig: 'File is to large',
       maxFiles: 10,
@@ -41,7 +41,7 @@ class Dropzone extends Component {
 
     var eventHandlers = {
       /* addedfile: (file) => console.log(file), */
-      processing: processingCallback,
+      /* processing: processingCallback, */
       success: completeCallback
     };
 

@@ -8,8 +8,6 @@ class Nav extends Component {
 
   render() {
 
-    console.log('Rendering Nav');
-
     return (
 
       <nav className="navbar navbar-default navbar-static-top">

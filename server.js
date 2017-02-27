@@ -47,6 +47,14 @@ app.use(session({
   activeDuration: 5 * 60 * 1000,
 }));
 
+//Middleware
+var myLogger = function (req, res, next) {
+  console.log('LOGGED')
+  next();
+}
+
+app.use(myLogger);
+
 //Status
 app.get('/api/status', (req, res) => {
 
@@ -58,13 +66,11 @@ app.get('/api/status', (req, res) => {
     status = true;
   }
 
-  res.json({isLoggedIn: status});
-  return;
+  return res.json({isLoggedIn: status});
 
 });
 
 //Authentication
-/* app.get('/api/auth', (req, res) => { */
 app.post('/api/auth', (req, res) => {
 
   console.log('**** Executing /api/auth ****');
@@ -72,12 +78,10 @@ app.post('/api/auth', (req, res) => {
   req.session.authenticated = false;
   client = null;
 
-  /* const passphrase = req.query.passphrase; */
   const passphrase = req.body.passphrase;
 
   if (!passphrase) {
-    res.json({isLoggedIn: false});
-    return;
+    return res.json({isLoggedIn: false});
   }
 
   //Create Private Key from Mnemonic
@@ -96,16 +100,14 @@ app.post('/api/auth', (req, res) => {
   client.getPublicKeys(function(err, keys) {
     if (err) {
       req.session.authenticated = false;
-      res.json({isLoggedIn: false});
-      return;
+      return res.json({isLoggedIn: false});
     }
     else {
       //Login was successful
       req.session.authenticated = true;
       req.session.passphrase = passphrase;
       req.session.userdir = USER_DIR + keys[0].user;
-      res.json({isLoggedIn: true});
-      return;
+      return res.json({isLoggedIn: true});
     }
   });
 
@@ -118,8 +120,7 @@ app.get('/api/logout', (req, res) => {
 
   req.session.authenticated = false;
   client = null;
-  res.json({isLoggedOut: true});
-  return;
+  return res.json({isLoggedOut: true});
 
 });
 
@@ -128,21 +129,23 @@ app.get('/api/buckets', (req, res) => {
 
   console.log('**** Executing /api/buckets ****');
 
-  client.getBuckets(function(err, buckets) {
-    if (err) {
-      res.json({isBuckets: false});
-      return;
-    }
-    else {
-      if (buckets) {
-        res.json({buckets});
-        return;
-      } else {
-        res.json({isBuckets: false});
-        return;
+  if (req.session.authenticated) {
+    client.getBuckets(function(err, buckets) {
+      if (err) {
+        return res.json({isBuckets: false});
       }
-    }
-  });
+      else {
+        if (buckets) {
+          return res.json({buckets});
+        } else {
+          return res.json({isBuckets: false});
+        }
+      }
+    });
+  }
+  else {
+    return res.json({redirect: '/'});
+  }
 
 });
 
@@ -151,27 +154,28 @@ app.get('/api/files', (req, res) => {
 
   console.log('**** Executing /api/files ****');
 
-  const bucketid = req.query.bucketid;
-  req.session.bucketid = bucketid;
+  if (req.session.authenticated) {
+    const bucketid = req.query.bucketid;
+    req.session.bucketid = bucketid;
 
-  if (!bucketid) {
-    res.json({isFiles: false});
-    return;
+    if (!bucketid) {
+      return res.json({isFiles: false});
+    }
+
+    client.listFilesInBucket(bucketid, function(err, files) {
+      if (err) {
+        return res.json({isFiles: false});
+      }
+      if (files) {
+        return res.json({files});
+      } else {
+        return res.json({isFiles: false});
+      }
+    });
   }
-
-  client.listFilesInBucket(bucketid, function(err, files) {
-    if (err) {
-      res.json({isFiles: false});
-      return;
-    }
-    if (files) {
-      res.json({files});
-      return;
-    } else {
-      res.json({isFiles: false});
-      return;
-    }
-  });
+  else {
+    return res.json({redirect: '/'});
+  }
 
 });
 
@@ -180,96 +184,96 @@ app.post('/api/upload', upload.single('file'),  (req, res) => {
 
   console.log('**** Executing /api/upload ****');
 
-  if (req.file && req.file.originalname) {
+  if (req.session.authenticated) {
+    if (req.file && req.file.originalname) {
 
-    console.log('File Name', req.file.originalname);
-    console.log('Buffer', req.file.buffer);
+      console.log('File Name', req.file.originalname);
+      console.log('Buffer', req.file.buffer);
 
-    const bucketid = req.session.bucketid;
-    console.log('Bucket', bucketid);
+      const bucketid = req.session.bucketid;
+      console.log('Bucket', bucketid);
 
-    const userdir = req.session.userdir;
-    console.log('User Directory', userdir);
+      const userdir = req.session.userdir;
+      console.log('User Directory', userdir);
 
-    const encryptpath = userdir + '/' + req.file.originalname + '.crypt';
-    console.log('Encrypted File Path', encryptpath);
+      const encryptpath = userdir + '/' + req.file.originalname + '.crypt';
+      console.log('Encrypted File Path', encryptpath);
 
-    const keyring = storj.KeyRing(userdir, req.session.passphrase);
+      const keyring = storj.KeyRing(userdir, req.session.passphrase);
 
-    if (!keyring) {
-      console.log('Failed to create keyring', err.message);
-      res.json({isUploaded: false});
-      return;
-    }
-    else {
-      console.log('Created keyring');
-    }
+      if (!keyring) {
+        console.log('error', err.message);
+        return res.json({isUploaded: false});
+      }
+      else {
+        console.log('Created keyring');
+      }
 
-    //Read file stream
-    const bufferStream = new stream.PassThrough();
-    const filebuffer = Buffer.from(req.file.buffer);
-    bufferStream.end(filebuffer);
+      //Read file stream
+      const bufferStream = new stream.PassThrough();
+      const filebuffer = Buffer.from(req.file.buffer);
+      bufferStream.end(filebuffer);
 
-    // Prepare to encrypt file for upload
-    const secret = new storj.DataCipherKeyIv();
-    const encrypter = new storj.EncryptStream(secret);
+      // Prepare to encrypt file for upload
+      const secret = new storj.DataCipherKeyIv();
+      const encrypter = new storj.EncryptStream(secret);
 
-    // Encrypt the file to be uploaded and store it temporarily
-    bufferStream
-      .pipe(encrypter)
-      .pipe(fs.createWriteStream(encryptpath))
-      .on('finish', function() {
+      // Encrypt the file to be uploaded and store it temporarily
+      bufferStream
+        .pipe(encrypter)
+        .pipe(fs.createWriteStream(encryptpath))
+        .on('finish', function() {
 
-      console.log('Finished encrypting');
+        console.log('Finished encrypting');
 
-      // Create token for uploading to bucket by bucketId
-      client.createToken(bucketid, 'PUSH', function(err, token) {
+        // Create token for uploading to bucket by bucketId
+        client.createToken(bucketid, 'PUSH', function(err, token) {
 
-        if (err) {
-          console.log('Failed to create token', err.message);
-          res.json({isUploaded: false});
-          return;
-        }
-
-        if (token) {
-          console.log('Created token');
-        }
-
-        // Store the file using the bucketId, token, and encrypted file
-        client.storeFileInBucket(bucketid, token.token, encryptpath,
-        function(err, file) {
           if (err) {
-            console.log('Failed store file in bucket', err.message);
-            res.json({isUploaded: false});
-            return;
+            console.log('error', err.message);
+            return res.json({isUploaded: false});
           }
 
-          console.log('Stored file in bucket');
+          if (token) {
+            console.log('Created token');
+          }
 
-          // Save key for access to download file
-          keyring.set(file.id, secret);
-
-          // Delete tmp file
-          fs.unlink(encryptpath, function(err) {
+          // Store the file using the bucketId, token, and encrypted file
+          client.storeFileInBucket(bucketid, token.token, encryptpath,
+          function(err, file) {
             if (err) {
-              return console.log(err);
+              console.log('error', err.message);
+              return res.json({isUploaded: false});
             }
-            console.log('Temporary encrypted file deleted');
-          })
 
-          res.json({isUploaded: true});
-          return;
+            console.log('Stored file in bucket');
+
+            // Save key for access to download file
+            keyring.set(file.id, secret);
+
+            // Delete tmp file
+            fs.unlink(encryptpath, function(err) {
+              if (err) {
+                console.log('error', err.message);
+              }
+              console.log('Temporary encrypted file deleted');
+            })
+
+            return res.json({isUploaded: true});
+
+          });
 
         });
 
       });
 
-    });
-
+    }
+    else {
+      return res.json({isUploaded: false});
+    }
   }
   else {
-    res.json({isUploaded: false});
-    return;
+    return res.json({redirect: '/'});
   }
 
 });
@@ -279,87 +283,89 @@ app.get('/api/download', (req, res) => {
 
   console.log('**** Executing /api/download ****');
 
-  /*const bucketid = req.session.bucketid; */
-  const bucketid = 'b3bc796132362dd6324a4645';
-  const fileid = req.query.fileid;
-  const filename = req.query.filename;
+  if (req.session.authenticated) {
+    const bucketid = req.session.bucketid;
+    const fileid = req.query.fileid;
+    const filename = req.query.filename;
 
-  console.log('bucketid...', bucketid);
-  console.log('fileid...', fileid);
-  console.log('filename...', filename);
+    console.log('bucketid...', bucketid);
+    console.log('fileid...', fileid);
+    console.log('filename...', filename);
 
-  if (!bucketid || !fileid || !filename) {
-    res.json({isDownload: false});
-    return;
-  }
+    if (!bucketid || !fileid || !filename) {
+      return null;
+    }
 
-  /* const userdir = req.session.userdir; */
-  const userdir = './.users/a3de7e3f-5cc7-4e5f-8aba-b1d495475f78_19cd4895565e473aaa199efccb7e1253@heroku.storj.io';
-  console.log('User Directory', userdir);
+    const userdir = req.session.userdir;
+    console.log('User Directory', userdir);
 
-  console.log('Getting keyring');
-  /* const keyring = storj.KeyRing(userdir, req.session.passphrase); */
-  const keyring = storj.KeyRing(userdir, 'delay chuckle marine denial float pond right detect tomorrow cloud solar warrior');
+    console.log('Getting keyring');
+    const keyring = storj.KeyRing(userdir, req.session.passphrase);
 
-  // Where the downloaded file will be saved
-  var target = fs.createWriteStream(userdir + '/' + filename);
+    // Where the downloaded file will be saved
+    var target = fs.createWriteStream(userdir + '/' + filename);
 
-  // Get key to download file
-  console.log('Get key for fileId');
-  var secret = keyring.get(fileid);
+    // Get key to download file
+    console.log('Get key for fileId');
+    var secret = keyring.get(fileid);
 
-  // Prepare to decrypt the encrypted file
-  var decrypter = new storj.DecryptStream(secret);
-  var received = 0;
+    // Prepare to decrypt the encrypted file
+    var decrypter = new storj.DecryptStream(secret);
+    var received = 0;
 
-  // Download the file
-  console.log('Creating file stream');
-  client.createFileStream(bucketid, fileid, { exclude: [] },
+    // Download the file
+    console.log('Creating file stream');
+    client.createFileStream(bucketid, fileid, { exclude: [] },
 
-    function(err, stream) {
-      if (err) {
-        console.log('FileStream error', err.message);
-        return;
-      }
+      function(err, stream) {
+        if (err) {
+          console.log('error', err.message);
+          return null;
+        }
 
-      // Handle stream errors
-      stream.on('error', function(err) {
-        console.log('warn', 'Failed to download shard, reason: %s', [err.message]);
-        // Delete the partial file
-        fs.unlink(target, function(unlinkFailed) {
-          if (unlinkFailed) {
-            return console.log('error', 'Failed to unlink partial file.');
-          }
-          if (!err.pointer) {
-            return;
+        // Handle stream errors
+        stream.on('error', function(err) {
+          console.log('error', err.message);
+          // Delete the partial file
+          fs.unlink(target, function(unlinkFailed) {
+            if (unlinkFailed) {
+              console.log('error', 'Failed to unlink partial file.');
+            }
+            if (!err.pointer) {
+              console.log('error', 'Cannot find target.');
+            }
+          });
+          return null;
+
+        }).pipe(through(function(chunk) {
+            received += chunk.length;
+            console.log('info', 'Received ' + received + ' of ' + stream._length + ' bytes');
+            this.queue(chunk);
+        })).pipe(decrypter)
+           .pipe(target)
+    });
+
+    // Handle Events emitted from file download stream
+    target.on('finish', function() {
+      console.log('Downloading file');
+      res.download(userdir + '/' + filename, filename);
+      //Delete file
+      res.on('finish', function(){
+        console.log('Deleting temporary file');
+        fs.unlink(userdir + '/' + filename, function(err) {
+          if (err) {
+            console.log('error', err.message);
           }
         });
-
-      }).pipe(through(function(chunk) {
-          received += chunk.length;
-          console.log('info', 'Received %s of %s bytes', [received, stream._length]);
-          this.queue(chunk);
-      })).pipe(decrypter)
-         .pipe(target)
-  });
-
-  // Handle Events emitted from file download stream
-  target.on('finish', function() {
-    console.log('Downloading File');
-    res.download(userdir + '/' + filename, filename);
-  }).on('error', function(err) {
-    console.log('error', err.message);
-  });
-
-  //Delete file
-  res.on('finish', function(){
-    fs.unlink(userdir + '/' + filename, function(err) {
-      if (err) {
-        return console.log(err);
-      }
-      console.log('Downloadable File Deleted');
+      });
+    }).on('error', function(err) {
+      console.log('error', err.message);
+      return null;
     });
-  });
+  }
+  else {
+    return res.json({redirect: '/'});
+  }
 
 });
 

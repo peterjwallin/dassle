@@ -29,7 +29,9 @@ class Main extends Component {
       bucketName: null,
       isFiles: false,
       files: [],
-      isDownload: false
+      downloadFailed: false,
+      isRedirected: false
+
     };
   }
 
@@ -116,11 +118,39 @@ class Main extends Component {
   }
 
   handleDownloadClick(row) {
+
+    var downloadFailed = true;
+
     Download(row.props.data.id, row.props.data.filename, (result) => {
-      this.setState({
-        isDownload:result.isDownload
-      });
+
+      const data = result;
+      const fileName = row.props.data.filename;
+
+      var saveData = (function () {
+        var a = document.createElement("a");
+        document.body.appendChild(a);
+        a.style = "display: none";
+        return function (data, fileName) {
+          var blob = new Blob([data]),
+              url = window.URL.createObjectURL(blob);
+          a.href = url;
+          a.download = fileName;
+          a.click();
+          window.URL.revokeObjectURL(url);
+        };
+      }());
+
+      if (data) {
+        downloadFailed = false;
+        saveData(data, fileName);
+      }
+
     });
+
+    if (downloadFailed) {
+      this.setState({downloadFailed:true});
+    }
+
   }
 
   // Render Components
@@ -165,8 +195,6 @@ class Main extends Component {
   }
 
   render() {
-
-    console.log('Rendering Main');
 
       return (
 

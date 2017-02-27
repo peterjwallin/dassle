@@ -6,8 +6,6 @@ class FileList extends Component {
 
   render() {
 
-    console.log('Rendering FileList');
-
     var FileNameComponent = React.createClass({
       render: function(){
         return <a href='#'><i className="fa fa-file-o fa-1x"></i>&nbsp;{this.props.data}</a>

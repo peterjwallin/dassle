@@ -26,8 +26,6 @@ class Auth extends Component {
 
   render () {
 
-    console.log('Rendering Auth');
-
     return (
 
       <div className="container">

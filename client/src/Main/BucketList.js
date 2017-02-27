@@ -6,8 +6,6 @@ class BucketList extends Component {
 
   render() {
 
-    console.log('Rendering BucketList');
-
     var NameComponent = React.createClass({
       render: function(){
         return <a href='#'><i className="fa fa-folder fa-2x"></i>&nbsp;{this.props.data}</a>
