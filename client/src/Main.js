@@ -30,8 +30,7 @@ class Main extends Component {
       isFiles: false,
       files: [],
       downloadFailed: false,
-      isRedirected: false
-
+      isSessionInactive: false
     };
   }
 
@@ -46,8 +45,9 @@ class Main extends Component {
       this.setState({
         showSubNav: true,
         showBuckets: true,
+        buckets: buckets,
         isBuckets: isBuckets,
-        buckets: buckets
+        isSessionInactive: result.isSessionInactive
       });
     });
   }
@@ -67,6 +67,7 @@ class Main extends Component {
       this.setState({
         files: result.files,
         isFiles: result.isFiles,
+        isSessionInactive: result.isSessionInactive,
         bucketID:row.props.data.id,
         bucketName:row.props.data.name,
         showBuckets:false,
@@ -82,6 +83,7 @@ class Main extends Component {
       this.setState({
         files: result.files,
         isFiles: result.isFiles,
+        isSessionInactive: result.isSessionInactive,
         bucketID:bucketid,
         bucketName:bucketname,
         showBuckets:false,
@@ -94,7 +96,8 @@ class Main extends Component {
     Files(this.state.bucketID, (result) => {
       this.setState({
         files: result.files,
-        isFiles: result.isFiles
+        isFiles: result.isFiles,
+        isSessionInactive: result.isSessionInactive
       });
     });
   }
