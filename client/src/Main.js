@@ -2,18 +2,17 @@ import React, {Component} from 'react';
 import {BucketList} from './Main/BucketList';
 import {FileList} from './Main/FileList';
 import {Dropzone} from './Main/Dropzone';
-import {Buckets} from './Client';
-import {Files} from './Client';
-import {Download} from './Client';
+import {Buckets, Files, Download} from './Client';
+
 
 class Main extends Component {
 
   constructor(props) {
     super(props);
-    this.handleShowBucketsClick = this.handleShowBucketsClick.bind(this);
+    this.handleMyFilesLink = this.handleMyFilesLink.bind(this);
+    this.handleUploadLink = this.handleUploadLink.bind(this);
+    this.handleCreateBucketLink = this.handleCreateBucketLink.bind(this);
     this.handleShowMyFilesClick = this.handleShowMyFilesClick.bind(this);
-    this.handleUploadClick = this.handleUploadClick.bind(this);
-    this.handleCreateBucketClick = this.handleCreateBucketClick.bind(this);
     this.handleDownloadClick = this.handleDownloadClick.bind(this);
     this.handleShowMyFiles = this.handleShowMyFiles.bind(this);
     this.handleBucketDropdownClick = this.handleBucketDropdownClick.bind(this);
@@ -46,14 +45,13 @@ class Main extends Component {
         showSubNav: true,
         showBuckets: true,
         buckets: buckets,
-        isBuckets: isBuckets,
-        isSessionInactive: result.isSessionInactive
+        isBuckets: isBuckets
       });
     });
   }
 
-  //Click Functions
-  handleShowBucketsClick() {
+  //Sub Navigation
+  handleMyFilesLink() {
     this.setState({
       showBuckets:true,
       myFiles:false,
@@ -62,47 +60,7 @@ class Main extends Component {
     });
   }
 
-  handleShowMyFilesClick(row) {
-    Files(row.props.data.id, (result) => {
-      this.setState({
-        files: result.files,
-        isFiles: result.isFiles,
-        isSessionInactive: result.isSessionInactive,
-        bucketID:row.props.data.id,
-        bucketName:row.props.data.name,
-        showBuckets:false,
-        myFiles:true
-      });
-    });
-  }
-
-  handleBucketDropdownClick(event) {
-    const bucketid = event.target.id;
-    const bucketname = event.target.name;
-    Files(bucketid, (result) => {
-      this.setState({
-        files: result.files,
-        isFiles: result.isFiles,
-        isSessionInactive: result.isSessionInactive,
-        bucketID:bucketid,
-        bucketName:bucketname,
-        showBuckets:false,
-        myFiles:true
-      });
-    });
-  }
-
-  handleShowMyFiles() {
-    Files(this.state.bucketID, (result) => {
-      this.setState({
-        files: result.files,
-        isFiles: result.isFiles,
-        isSessionInactive: result.isSessionInactive
-      });
-    });
-  }
-
-  handleUploadClick() {
+  handleUploadLink() {
     this.setState({
       showBuckets:false,
       myFiles:false,
@@ -111,7 +69,7 @@ class Main extends Component {
     });
   }
 
-  handleCreateBucketClick() {
+  handleCreateBucketLink() {
     this.setState({
       showBuckets:false,
       myFiles:false,
@@ -120,53 +78,91 @@ class Main extends Component {
     });
   }
 
-  handleDownloadClick(row) {
-
-    var downloadFailed = true;
-
-    Download(row.props.data.id, row.props.data.filename, (result) => {
-
-      const data = result;
-      const fileName = row.props.data.filename;
-
-      var saveData = (function () {
-        var a = document.createElement("a");
-        document.body.appendChild(a);
-        a.style = "display: none";
-        return function (data, fileName) {
-          var blob = new Blob([data]),
-              url = window.URL.createObjectURL(blob);
-          a.href = url;
-          a.download = fileName;
-          a.click();
-          window.URL.revokeObjectURL(url);
-        };
-      }());
-
-      if (data) {
-        downloadFailed = false;
-        saveData(data, fileName);
+  // Show files when clicking a bucket row
+  handleShowMyFilesClick(row) {
+    Files(row.props.data.id, (result) => {
+      if (result) {
+        this.setState({
+          files: result.files,
+          isFiles: result.isFiles,
+          bucketID:row.props.data.id,
+          bucketName:row.props.data.name,
+          showBuckets:false,
+          myFiles:true
+        });
       }
-
     });
+  }
 
-    if (downloadFailed) {
-      this.setState({downloadFailed:true});
-    }
+  //Show files when selecting bucket from dropdown
+  handleBucketDropdownClick(event) {
+    const bucketid = event.target.id;
+    const bucketname = event.target.name;
+    Files(bucketid, (result) => {
+      if (result) {
+        this.setState({
+          files: result.files,
+          isFiles: result.isFiles,
+          bucketID:bucketid,
+          bucketName:bucketname,
+          showBuckets:false,
+          myFiles:true
+        });
+      }
+    });
+  }
 
+  //Update file list after uploading a new file
+  handleShowMyFiles() {
+    Files(this.state.bucketID, (result) => {
+      if (result) {
+        this.setState({
+          files: result.files,
+          isFiles: result.isFiles
+        });
+      }
+    });
+  }
+
+  //Download a file
+  handleDownloadClick(row) {
+    Download(row.props.data.id, row.props.data.filename, (result) => {
+      if (result) {
+        if (result.downloadFailed) {
+          this.setState({downloadFailed:true});
+        }
+        else {
+          const fileName = row.props.data.filename;
+          var saveData = (function () {
+            var a = document.createElement("a");
+            document.body.appendChild(a);
+            a.style = "display: none";
+            return function (data, fileName) {
+              var blob = new Blob([data]),
+                  url = window.URL.createObjectURL(blob);
+              a.href = url;
+              a.download = fileName;
+              a.click();
+              window.URL.revokeObjectURL(url);
+            };
+          }());
+          saveData(result, fileName);
+        }
+      }
+    });
   }
 
   // Render Components
   renderMyFilesLink() {
-    return this.state.showSubNav? <MyFilesLink onClick={this.handleShowBucketsClick} /> : null;
+    return this.state.showSubNav? <MyFilesLink onClick={this.handleMyFilesLink} /> : null;
   }
 
   renderUploadLink() {
-    return this.state.showSubNav? <UploadLink onClick={this.handleUploadClick} /> : null;
+    return this.state.showSubNav? <UploadLink onClick={this.handleUploadLink} /> : null;
   }
 
   renderCreateBucketLink() {
-    return this.state.showSubNav? <CreateBucketLink onClick={this.handleCreateBucketClick} /> : null;
+    return this.state.showSubNav? <CreateBucketLink onClick={this.handleCreateBucketLink} /> : null;
   }
 
   renderBuckets() {
@@ -251,14 +247,11 @@ function CreateBucketLink(props) {
 }
 
 function BucketDropdown(props) {
-
   const buckets = props.buckets;
   const listItems = buckets.map((bucket) =>
     <li key={bucket.id}><a href='#' onClick={props.onClick} id={bucket.id} name={bucket.name}>{bucket.name}</a></li>
   );
-
   return (
-
     <div className="btn-group">
       <button type="button" className="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
         {props.bucket}&nbsp;<span className="caret"></span>
@@ -267,20 +260,16 @@ function BucketDropdown(props) {
         {listItems}
       </ul>
     </div>
-
   );
 }
 
 function UploadButton(props) {
-
   return (
-
     <div>
       <button className="btn btn-upload" type="button" data-toggle="collapse" data-target="#dropZone" aria-expanded="false" aria-controls="dropZone">
         <span className='glyphicon glyphicon-cloud-upload'></span>&nbsp;Upload
       </button>
     </div>
-
   );
 }
 

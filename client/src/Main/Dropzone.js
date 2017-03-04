@@ -17,8 +17,13 @@ class Dropzone extends Component {
 
     const handleShowMyFiles = this.props.handleShowMyFiles;
 
-    var completeCallback = function() {
-      handleShowMyFiles();
+    var completeCallback = function(file, response) {
+      if (response.isSessionInactive) {
+        window.location.href='/';
+      }
+      if (response.isUploaded) {
+        handleShowMyFiles();
+      }
     }
 
     var componentConfig = {

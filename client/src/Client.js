@@ -4,7 +4,7 @@ export function UserStatus(param, cb) {
     accept: 'application/json',
     credentials: 'include',
   }).then(checkStatus)
-    .then(parseJSON)
+    .then(parseResponse)
     .then(cb);
 }
 
@@ -17,7 +17,7 @@ export function Authenticate(param, cb) {
     accept: 'application/json',
     credentials: 'include',
   }).then(checkStatus)
-    .then(parseJSON)
+    .then(parseResponse)
     .then(cb);
 }
 
@@ -27,7 +27,7 @@ export function Logout(param, cb) {
     accept: 'application/json',
     credentials: 'include',
   }).then(checkStatus)
-    .then(parseJSON)
+    .then(parseResponse)
     .then(cb);
 }
 
@@ -37,7 +37,8 @@ export function Buckets(param, cb) {
     accept: 'application/json',
     credentials: 'include',
   }).then(checkStatus)
-    .then(parseJSON)
+    .then(parseResponse)
+    .then(checkSession)
     .then(cb);
 }
 
@@ -47,7 +48,8 @@ export function Files(param, cb) {
     accept: 'application/json',
     credentials: 'include',
   }).then(checkStatus)
-    .then(parseJSON)
+    .then(parseResponse)
+    .then(checkSession)
     .then(cb);
 }
 
@@ -56,25 +58,39 @@ export function Download(fileid, filename, cb) {
     method: 'GET',
     credentials: 'include',
   }).then(checkStatus)
-    .then(returnBlob)
+    .then(parseResponse)
+    .then(checkSession)
     .then(cb);
 }
 
 function checkStatus(response) {
   if (response.status >= 200 && response.status < 300) {
     return response;
-  } else {
+  }
+  else {
     const error = new Error(`HTTP Error ${response.statusText}`);
     error.status = response.statusText;
     error.response = response;
+    window.location.href='/';
     throw error;
   }
 }
 
-function parseJSON(response) {
-  return response.json();
+function checkSession(json){
+  if (json.isSessionInactive) {
+    window.location.href='/';
+  }
+  else {
+    return json;
+  }
 }
 
-function returnBlob(response){
-  return response.blob();
+function parseResponse(response) {
+  var contenttype = response.headers.get('content-type').split(';');
+  if (contenttype[0] === 'application/json') {
+    return response.json();
+  }
+  else {
+    return response.blob();
+  }
 }
