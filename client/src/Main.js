@@ -2,7 +2,7 @@ import React, {Component} from 'react';
 import {BucketList} from './Main/BucketList';
 import {FileList} from './Main/FileList';
 import {Dropzone} from './Main/Dropzone';
-import {Buckets, Files, Download} from './Client';
+import {Buckets, Files, Download, DownloadStatus} from './Client';
 
 
 class Main extends Component {
@@ -123,7 +123,20 @@ class Main extends Component {
       }
     });
   }
-
+  /*
+  handleShowMyFiles() {
+    UploadToStorj('', (result) => {
+      Files(this.state.bucketID, (result) => {
+        if (result) {
+          this.setState({
+            files: result.files,
+            isFiles: result.isFiles
+          });
+        }
+      });
+    });
+  }
+  */
   //Download a file
   handleDownloadClick(row) {
     Download(row.props.data.id, row.props.data.filename, (result) => {
@@ -132,6 +145,18 @@ class Main extends Component {
           this.setState({downloadFailed:true});
         }
         else {
+
+
+            setInterval(() => {
+              DownloadStatus('', (result) => {
+                console.log('Bytes received', result.progress);
+                console.log('Bytes total', result.total);
+              });
+
+            },5000);
+
+
+          /*
           const fileName = row.props.data.filename;
           var saveData = (function () {
             var a = document.createElement("a");
@@ -147,6 +172,8 @@ class Main extends Component {
             };
           }());
           saveData(result, fileName);
+          */
+
         }
       }
     });

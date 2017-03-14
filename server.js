@@ -1,14 +1,17 @@
-var express = require('express');
-var fs = require('fs');
-var storj = require('storj-lib');
-var session = require('client-sessions');
-var through = require('through');
-var mnemonic = require('bitcore-mnemonic');
-var bitcore = require('bitcore-lib');
-var dotenv = require('dotenv');
-var bodyParser = require('body-parser');
-var multer  = require('multer');
-var stream = require('stream');
+const express = require('express');
+const fs = require('fs');
+const storj = require('storj-lib');
+const session = require('client-sessions');
+const through = require('through');
+const mnemonic = require('bitcore-mnemonic');
+const bitcore = require('bitcore-lib');
+const dotenv = require('dotenv');
+const bodyParser = require('body-parser');
+const multer  = require('multer');
+const stream = require('stream');
+const redis = require('redis');
+const redisServer = require('redis-server');
+const shortid = require('shortid');
 
 //Storj variables
 const api = 'https://api.storj.io';
@@ -28,7 +31,7 @@ const upload = multer({
 // Key ring directory
 const USER_DIR = './.users/';
 
-//Setup app
+//Initialize app
 const app = express();
 dotenv.load();
 app.set('port', (process.env.PORT || 3001));
@@ -47,8 +50,31 @@ app.use(session({
   activeDuration: 5 * 60 * 1000,
 }));
 
+//Initialize database
+const db_server = new redisServer(6379);
+var db_client;
+
+db_server.open((err) => {
+  if (err === null) {
+    console.log('Started Redis Server');
+  }
+});
+
+db_client = redis.createClient();
+db_client.on('connect', () => {
+    console.log('Connected to Redis Server');
+});
+
+db_client.hmset('downloadstatus', {
+    'fileid': '1234567890',
+    'progress': '303',
+    'total': '10100',
+    'complete': 'false',
+    'success': 'false'
+});
+
 //Middleware
-var myLogger = function (req, res, next) {
+var myLogger = (req, res, next) => {
   console.log('LOGGED')
   next();
 }
@@ -283,28 +309,50 @@ app.get('/api/download', (req, res) => {
   }
 
   const bucketid = req.session.bucketid;
+  const userdir = req.session.userdir;
+  const passphrase = req.session.passphrase;
   const fileid = req.query.fileid;
   const filename = req.query.filename;
+  const target_path = userdir + '/' + filename;
+  const downloadid = 'download_' + shortid.generate();
 
   console.log('bucketid...', bucketid);
+  console.log('userdir', userdir);
+  console.log('passphrase', passphrase);
   console.log('fileid...', fileid);
   console.log('filename...', filename);
+  console.log('downloadid...', downloadid);
 
-  if (!bucketid || !fileid || !filename) {
+  if (!bucketid || !userdir || !passphrase || !fileid || !filename || !downloadid) {
     return res.json({downloadFailed: true});
   }
 
-  const userdir = req.session.userdir;
-  console.log('User Directory', userdir);
+  // Set download id as session variable
+  req.session.downloadid = downloadid;
 
+  //Initialize Redis hash
+  db_client.hmset(downloadid, {
+      'fileid': fileid,
+      'progress': '0',
+      'total': '0',
+      'complete': 'false',
+      'success': 'false'
+  });
+
+  // Retrieve user keyring
   console.log('Getting keyring');
-  const keyring = storj.KeyRing(userdir, req.session.passphrase);
+  const keyring = storj.KeyRing(userdir, passphrase);
 
   // Where the downloaded file will be saved
-  var target = fs.createWriteStream(userdir + '/' + filename);
+  var target = fs.createWriteStream(target_path);
+  /*
+  target.on('finish', function () {
+    target.end();
+  });
+  */
 
   // Get key to download file
-  console.log('Get key for fileId');
+  console.log('Getting secret key');
   var secret = keyring.get(fileid);
 
   // Prepare to decrypt the encrypted file
@@ -315,31 +363,58 @@ app.get('/api/download', (req, res) => {
   console.log('Creating file stream');
   client.createFileStream(bucketid, fileid, { exclude: [] },function(err, stream) {
     if (err) {
-      console.log('error', err.message);
-      return res.json({downloadFailed: true});
-    }
-
-    // Handle stream errors
-    stream.on('error', function(err) {
-      console.log('error', err.message);
-      // Delete the partial file
-      fs.unlink(target, function(unlinkFailed) {
-        if (unlinkFailed) {
-          console.log('error', 'Failed to unlink partial file.');
-        }
-        if (!err.pointer) {
-          console.log('error', 'Cannot find target.');
-        }
+      console.log('createFileStream method error', err.message);
+      db_client.hmset(downloadid, {
+          'fileid': fileid,
+          'progress': '0',
+          'total': '0',
+          'complete': 'true',
+          'success': 'false'
       });
-      return res.json({downloadFailed: true});
-    }).pipe(through(function(chunk) {
-      received += chunk.length;
-      console.log('info', 'Received ' + received + ' of ' + stream._length + ' bytes');
-      this.queue(chunk);
-    })).pipe(decrypter)
-       .pipe(target)
+    }
+    else {
+      // Handle stream errors
+      stream.on('error', function(err) {
+        console.log('stream error', err.message);
+        // Delete the partial file
+        fs.unlink(target_path, function(unlinkFailed) {
+          if (unlinkFailed) {
+            console.log('error', 'Failed to unlink partial file.', target_path);
+          }
+          if (!err.pointer) {
+            console.log('error', 'Cannot find target.', target_path);
+          }
+        });
+        db_client.hmset(downloadid, {
+            'fileid': fileid,
+            'progress': '0',
+            'total': '0',
+            'complete': 'true',
+            'success': 'false'
+        });
+      })
+      .pipe(through(function(chunk) {
+          received += chunk.length;
+          db_client.hmset(downloadid, {
+              'fileid': fileid,
+              'progress': received.toString(),
+              'total': stream._length.toString(),
+              'complete': 'false',
+              'success': 'false'
+          });
+          console.log('info', 'Received ' + received + ' of ' + stream._length + ' bytes');
+          this.queue(chunk);
+        }))
+      .pipe(decrypter)
+      .pipe(target)
+    }
   });
 
+  return res.json({downloadFailed: false});
+
+
+
+  /*
   // Handle Events emitted from file download stream
   target.on('finish', function() {
     console.log('Downloading file');
@@ -356,6 +431,25 @@ app.get('/api/download', (req, res) => {
   }).on('error', function(err) {
     console.log('error', err.message);
     return res.json({downloadFailed: true});
+  });
+  */
+
+});
+
+//Download
+app.get('/api/downloadstatus', (req, res) => {
+
+  console.log('**** Executing /api/downloadstatus ****');
+
+  if (!req.session.authenticated || !client) {
+    return res.json({isSessionInactive: true});
+  }
+
+  const downloadid = req.session.downloadid;
+
+  db_client.hgetall(downloadid, function(err, object) {
+      console.log(object);
+      return res.json(object);
   });
 
 });

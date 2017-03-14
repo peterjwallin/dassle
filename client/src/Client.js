@@ -63,16 +63,41 @@ export function Download(fileid, filename, cb) {
     .then(cb);
 }
 
+export function DownloadStatus(param, cb) {
+  return fetch(`api/downloadstatus`, {
+    method: 'GET',
+    credentials: 'include',
+  }).then(checkStatus)
+    .then(parseResponse)
+    .then(checkSession)
+    .then(cb);
+}
+
+/*
+export function UploadToStorj(param, cb) {
+  return fetch(`api/storj`, {
+    method: 'GET',
+    accept: 'application/json',
+    credentials: 'include',
+  }).then(checkStatus)
+    .then(parseResponse)
+    .then(checkSession)
+    .then(cb);
+}
+*/
+
 function checkStatus(response) {
   if (response.status >= 200 && response.status < 300) {
     return response;
   }
   else {
+    /*
     const error = new Error(`HTTP Error ${response.statusText}`);
     error.status = response.statusText;
     error.response = response;
-    window.location.href='/';
     throw error;
+    */
+    window.location.href='/';
   }
 }
 
