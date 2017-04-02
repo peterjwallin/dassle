@@ -2,7 +2,7 @@ import React, {Component} from 'react';
 import {BucketList} from './Main/BucketList';
 import {FileList} from './Main/FileList';
 import {Dropzone} from './Main/Dropzone';
-import {Buckets, Files, Download, DownloadStatus} from './Client';
+import {Buckets, Files, StreamStorj, StreamStatus, Download} from './Client';
 
 
 class Main extends Component {
@@ -29,6 +29,7 @@ class Main extends Component {
       isFiles: false,
       files: [],
       downloadFailed: false,
+      downloadInprogress: false,
       isSessionInactive: false
     };
   }
@@ -123,57 +124,55 @@ class Main extends Component {
       }
     });
   }
-  /*
-  handleShowMyFiles() {
-    UploadToStorj('', (result) => {
-      Files(this.state.bucketID, (result) => {
-        if (result) {
-          this.setState({
-            files: result.files,
-            isFiles: result.isFiles
-          });
-        }
-      });
-    });
-  }
-  */
+
   //Download a file
   handleDownloadClick(row) {
-    Download(row.props.data.id, row.props.data.filename, (result) => {
+    StreamStorj(row.props.data.id, row.props.data.filename, (result) => {
       if (result) {
         if (result.downloadFailed) {
           this.setState({downloadFailed:true});
         }
         else {
-
-
-            setInterval(() => {
-              DownloadStatus('', (result) => {
-                console.log('Bytes received', result.progress);
-                console.log('Bytes total', result.total);
-              });
-
-            },5000);
-
-
-          /*
           const fileName = row.props.data.filename;
-          var saveData = (function () {
-            var a = document.createElement("a");
-            document.body.appendChild(a);
-            a.style = "display: none";
-            return function (data, fileName) {
-              var blob = new Blob([data]),
-                  url = window.URL.createObjectURL(blob);
-              a.href = url;
-              a.download = fileName;
-              a.click();
-              window.URL.revokeObjectURL(url);
-            };
-          }());
-          saveData(result, fileName);
-          */
+          var percent_complete = 0;
+          var downloadstatus = setInterval(() => {
+            StreamStatus('', (result) => {
+              if (result.total === -1) {
+                this.setState({downloadFailed:true});
+                clearInterval(downloadstatus);
+              }
+              else {
+                this.setState({downloadInprogress:true});
+                percent_complete = result.progress / result.total;
+              }
+              console.log('File Id', result.fileid);
+              console.log('File Name', result.filename);
+              console.log('Bytes received', result.progress);
+              console.log('Bytes total', result.total);
+              console.log('% complete', percent_complete);
+            });
+            if (percent_complete === 1) {
+              clearInterval(downloadstatus);
+              Download('', (filedata) => {
+                const data = filedata;
+                var saveData = (function() {
+                  var a = document.createElement('a');
+                  document.body.appendChild(a);
+                  a.style = 'display:none';
+                  return function (data, fileName) {
+                    var blob = new Blob([data]),
+                    url = window.URL.createObjectURL(blob);
+                    a.href = url;
+                    a.download = fileName;
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                  };
+                }());
+                saveData(data, fileName);
+              });
+            }
 
+          },1000);
         }
       }
     });

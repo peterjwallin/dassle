@@ -28,7 +28,7 @@
     "redis": "^2.7.0",
     "redis-server": "^1.1.0",
     "shortid": "^2.2.8",
-    "storj-lib": "^6.3.0",
+    "storj-lib": "^6.3.2",
     "through": "^2.3.8"
   },
   "scripts": {

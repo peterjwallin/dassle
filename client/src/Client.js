@@ -53,8 +53,8 @@ export function Files(param, cb) {
     .then(cb);
 }
 
-export function Download(fileid, filename, cb) {
-  return fetch(`api/download?fileid=${fileid}&filename=${filename}`, {
+export function StreamStorj(fileid, filename, cb) {
+  return fetch(`api/streamstorj?fileid=${fileid}&filename=${filename}`, {
     method: 'GET',
     credentials: 'include',
   }).then(checkStatus)
@@ -63,8 +63,8 @@ export function Download(fileid, filename, cb) {
     .then(cb);
 }
 
-export function DownloadStatus(param, cb) {
-  return fetch(`api/downloadstatus`, {
+export function StreamStatus(param, cb) {
+  return fetch(`api/streamstatus`, {
     method: 'GET',
     credentials: 'include',
   }).then(checkStatus)
@@ -73,18 +73,15 @@ export function DownloadStatus(param, cb) {
     .then(cb);
 }
 
-/*
-export function UploadToStorj(param, cb) {
-  return fetch(`api/storj`, {
+export function Download(param, cb) {
+  return fetch(`api/download`, {
     method: 'GET',
-    accept: 'application/json',
     credentials: 'include',
   }).then(checkStatus)
     .then(parseResponse)
     .then(checkSession)
     .then(cb);
 }
-*/
 
 function checkStatus(response) {
   if (response.status >= 200 && response.status < 300) {

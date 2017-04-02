@@ -299,10 +299,10 @@ app.post('/api/upload', upload.single('file'),  (req, res) => {
 
 });
 
-//Download
-app.get('/api/download', (req, res) => {
+// Stream file from Storj
+app.get('/api/streamstorj', (req, res) => {
 
-  console.log('**** Executing /api/download ****');
+  console.log('**** Executing /api/streamstorj ****');
 
   if (!req.session.authenticated || !client) {
     return res.json({isSessionInactive: true});
@@ -333,10 +333,9 @@ app.get('/api/download', (req, res) => {
   //Initialize Redis hash
   db_client.hmset(downloadid, {
       'fileid': fileid,
+      'filename': filename,
       'progress': '0',
-      'total': '0',
-      'complete': 'false',
-      'success': 'false'
+      'total': '0'
   });
 
   // Retrieve user keyring
@@ -345,11 +344,9 @@ app.get('/api/download', (req, res) => {
 
   // Where the downloaded file will be saved
   var target = fs.createWriteStream(target_path);
-  /*
   target.on('finish', function () {
     target.end();
   });
-  */
 
   // Get key to download file
   console.log('Getting secret key');
@@ -366,10 +363,9 @@ app.get('/api/download', (req, res) => {
       console.log('createFileStream method error', err.message);
       db_client.hmset(downloadid, {
           'fileid': fileid,
+          'filename': filename,
           'progress': '0',
-          'total': '0',
-          'complete': 'true',
-          'success': 'false'
+          'total': '-1'
       });
     }
     else {
@@ -388,19 +384,16 @@ app.get('/api/download', (req, res) => {
         db_client.hmset(downloadid, {
             'fileid': fileid,
             'progress': '0',
-            'total': '0',
-            'complete': 'true',
-            'success': 'false'
+            'total': '-1'
         });
       })
       .pipe(through(function(chunk) {
           received += chunk.length;
           db_client.hmset(downloadid, {
               'fileid': fileid,
+              'filename': filename,
               'progress': received.toString(),
-              'total': stream._length.toString(),
-              'complete': 'false',
-              'success': 'false'
+              'total': stream._length.toString()
           });
           console.log('info', 'Received ' + received + ' of ' + stream._length + ' bytes');
           this.queue(chunk);
@@ -412,47 +405,54 @@ app.get('/api/download', (req, res) => {
 
   return res.json({downloadFailed: false});
 
-
-
-  /*
-  // Handle Events emitted from file download stream
-  target.on('finish', function() {
-    console.log('Downloading file');
-    res.download(userdir + '/' + filename, filename);
-    //Delete file
-    res.on('finish', function(){
-      console.log('Deleting temporary file');
-      fs.unlink(userdir + '/' + filename, function(err) {
-        if (err) {
-          console.log('error', err.message);
-        }
-      });
-    });
-  }).on('error', function(err) {
-    console.log('error', err.message);
-    return res.json({downloadFailed: true});
-  });
-  */
-
 });
 
-//Download
-app.get('/api/downloadstatus', (req, res) => {
+// Status of stream from Storj
+app.get('/api/streamstatus', (req, res) => {
 
-  console.log('**** Executing /api/downloadstatus ****');
+  console.log('**** Executing /api/streamstatus ****');
 
   if (!req.session.authenticated || !client) {
     return res.json({isSessionInactive: true});
   }
 
   const downloadid = req.session.downloadid;
+  const userdir = req.session.userdir;
 
   db_client.hgetall(downloadid, function(err, object) {
-      console.log(object);
-      return res.json(object);
+    console.log(object);
+    return res.json(object);
   });
 
 });
+
+// Download
+app.get('/api/download', (req, res) => {
+
+  console.log('**** Executing /api/download ****');
+
+  if (!req.session.authenticated || !client) {
+    return res.json({isSessionInactive: true});
+  }
+
+  const downloadid = req.session.downloadid;
+  const userdir = req.session.userdir;
+
+  db_client.hgetall(downloadid, function(err, object) {
+    console.log('Downloading...', userdir + '/' + object.filename);
+    res.download(userdir + '/' + object.filename, object.filename);
+    res.on('finish', function(){
+      console.log('Deleting temporary file');
+      fs.unlink(userdir + '/' + object.filename, function(err) {
+        if (err) {
+          console.log('Error deleting download file', err.message);
+        }
+      });
+    });
+  });
+
+});
+
 
 //Generate Key pair
 app.get('/api/generate', (req, res) => {
