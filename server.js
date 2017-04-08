@@ -13,11 +13,11 @@ const redis = require('redis');
 const redisServer = require('redis-server');
 const shortid = require('shortid');
 
-//Storj variables
+// Storj variables
 const api = 'https://api.storj.io';
 var client;
 
-//Multer variables
+// Multer variables
 const storage = multer.memoryStorage()
 const upload = multer({
   storage: storage,
@@ -50,7 +50,7 @@ app.use(session({
   activeDuration: 5 * 60 * 1000,
 }));
 
-//Initialize database
+// Initialize Redis database
 const db_server = new redisServer(6379);
 var db_client;
 
@@ -65,15 +65,7 @@ db_client.on('connect', () => {
     console.log('Connected to Redis Server');
 });
 
-db_client.hmset('downloadstatus', {
-    'fileid': '1234567890',
-    'progress': '303',
-    'total': '10100',
-    'complete': 'false',
-    'success': 'false'
-});
-
-//Middleware
+// Logging Middleware
 var myLogger = (req, res, next) => {
   console.log('LOGGED')
   next();
@@ -81,7 +73,7 @@ var myLogger = (req, res, next) => {
 
 app.use(myLogger);
 
-//Status
+// Status
 app.get('/api/status', (req, res) => {
 
   console.log('**** Executing /api/status ****');
@@ -96,7 +88,7 @@ app.get('/api/status', (req, res) => {
 
 });
 
-//Authentication
+// Authentication
 app.post('/api/auth', (req, res) => {
 
   console.log('**** Executing /api/auth ****');
@@ -203,7 +195,7 @@ app.get('/api/files', (req, res) => {
 
 });
 
-//Upload
+// Upload
 app.post('/api/upload', upload.single('file'),  (req, res) => {
 
   console.log('**** Executing /api/upload ****');
@@ -314,7 +306,7 @@ app.get('/api/streamstorj', (req, res) => {
   const fileid = req.query.fileid;
   const filename = req.query.filename;
   const target_path = userdir + '/' + filename;
-  const downloadid = 'download_' + shortid.generate();
+  const downloadid = req.query.fileid + '_' + shortid.generate();
 
   console.log('bucketid...', bucketid);
   console.log('userdir', userdir);

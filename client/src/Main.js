@@ -1,4 +1,5 @@
 import React, {Component} from 'react';
+import {Modal} from 'react-bootstrap';
 import {BucketList} from './Main/BucketList';
 import {FileList} from './Main/FileList';
 import {Dropzone} from './Main/Dropzone';
@@ -16,6 +17,7 @@ class Main extends Component {
     this.handleDownloadClick = this.handleDownloadClick.bind(this);
     this.handleShowMyFiles = this.handleShowMyFiles.bind(this);
     this.handleBucketDropdownClick = this.handleBucketDropdownClick.bind(this);
+    this.handleDownloadCancel = this.handleDownloadCancel.bind(this);
     this.state = {
       showSubNav: false,
       showBuckets: false,
@@ -142,14 +144,19 @@ class Main extends Component {
                 clearInterval(downloadstatus);
               }
               else {
-                this.setState({downloadInprogress:true});
                 percent_complete = result.progress / result.total;
+                if (percent_complete === 1) {
+                  this.setState({downloadInprogress:false});
+                }
+                else {
+                  this.setState({downloadInprogress:true});
+                  console.log('File Id', result.fileid);
+                  console.log('File Name', result.filename);
+                  console.log('Bytes received', result.progress);
+                  console.log('Bytes total', result.total);
+                  console.log('% complete', percent_complete);
+                }
               }
-              console.log('File Id', result.fileid);
-              console.log('File Name', result.filename);
-              console.log('Bytes received', result.progress);
-              console.log('Bytes total', result.total);
-              console.log('% complete', percent_complete);
             });
             if (percent_complete === 1) {
               clearInterval(downloadstatus);
@@ -171,10 +178,15 @@ class Main extends Component {
                 saveData(data, fileName);
               });
             }
-
           },1000);
         }
       }
+    });
+  }
+
+  handleDownloadCancel() {
+    this.setState({
+      downloadInprogress:false
     });
   }
 
@@ -219,6 +231,10 @@ class Main extends Component {
     return this.state.createBucket? <h1>CreateBucket</h1> : null;
   }
 
+  renderDownloadProgress() {
+    return this.state.downloadInprogress? <DownloadProgress downloadInprogress={this.state.downloadInprogress} onClick={this.handleDownloadCancel}/> : null;
+  }
+
   render() {
 
       return (
@@ -238,9 +254,10 @@ class Main extends Component {
             <div className='col-xs-12'>{this.renderCreateBucket()}</div>
             <div className='col-xs-6 text-left'>{this.renderBucketDropdown()}</div>
             <div className='col-xs-6 text-right'>{this.renderUploadButton()}</div>
+            <div className='col-xs-12'>{this.renderDownloadProgress()}</div>
           </div>
           <div className='row'>
-            <div className="collapse" id="dropZone">
+            <div className='collapse' id='dropZone'>
               <br/>
               <div className='col-xs-12'>{this.renderDropZone()}</div>
             </div>
@@ -278,11 +295,11 @@ function BucketDropdown(props) {
     <li key={bucket.id}><a href='#' onClick={props.onClick} id={bucket.id} name={bucket.name}>{bucket.name}</a></li>
   );
   return (
-    <div className="btn-group">
-      <button type="button" className="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-        {props.bucket}&nbsp;<span className="caret"></span>
+    <div className='btn-group'>
+      <button type='button' className='btn btn-primary dropdown-toggle' data-toggle='dropdown' aria-haspopup='true' aria-expanded='false'>
+        {props.bucket}&nbsp;<span className='caret'></span>
       </button>
-      <ul className="dropdown-menu">
+      <ul className='dropdown-menu'>
         {listItems}
       </ul>
     </div>
@@ -292,10 +309,26 @@ function BucketDropdown(props) {
 function UploadButton(props) {
   return (
     <div>
-      <button className="btn btn-upload" type="button" data-toggle="collapse" data-target="#dropZone" aria-expanded="false" aria-controls="dropZone">
+      <button className='btn btn-upload' type='button' data-toggle='collapse' data-target='#dropZone' aria-expanded='false' aria-controls='dropZone'>
         <span className='glyphicon glyphicon-cloud-upload'></span>&nbsp;Upload
       </button>
     </div>
+  );
+}
+
+function DownloadProgress(props) {
+  return (
+    <Modal show={props.downloadInprogress}>
+      <Modal.Header closeButton>
+        <Modal.Title>Modal heading</Modal.Title>
+      </Modal.Header>
+      <Modal.Body>
+        <div>Modal content here </div>
+      </Modal.Body>
+      <Modal.Footer>
+        <button className='btn btn-upload' type='button' onClick={props.onClick}>Cancel</button>
+      </Modal.Footer>
+    </Modal>
   );
 }
 
