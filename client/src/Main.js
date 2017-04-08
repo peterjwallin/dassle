@@ -1,5 +1,6 @@
 import React, {Component} from 'react';
 import {Modal} from 'react-bootstrap';
+import {ProgressBar} from 'react-bootstrap';
 import {BucketList} from './Main/BucketList';
 import {FileList} from './Main/FileList';
 import {Dropzone} from './Main/Dropzone';
@@ -32,6 +33,7 @@ class Main extends Component {
       files: [],
       downloadFailed: false,
       downloadInprogress: false,
+      downloadPercent:0,
       isSessionInactive: false
     };
   }
@@ -144,12 +146,21 @@ class Main extends Component {
                 clearInterval(downloadstatus);
               }
               else {
-                percent_complete = result.progress / result.total;
-                if (percent_complete === 1) {
-                  this.setState({downloadInprogress:false});
+                percent_complete = Math.round((result.progress / result.total) * 100);
+                if (percent_complete === 100) {
+                  this.setState({downloadPercent:percent_complete});
+                  setTimeout(() => {
+                    this.setState({downloadInprogress:false});
+                  },1000);
                 }
                 else {
-                  this.setState({downloadInprogress:true});
+                  if (result.total === '0') {
+                    percent_complete = 0;
+                  }
+                  this.setState({
+                      downloadInprogress:true,
+                      downloadPercent:percent_complete
+                  });
                   console.log('File Id', result.fileid);
                   console.log('File Name', result.filename);
                   console.log('Bytes received', result.progress);
@@ -158,7 +169,7 @@ class Main extends Component {
                 }
               }
             });
-            if (percent_complete === 1) {
+            if (percent_complete === 100) {
               clearInterval(downloadstatus);
               Download('', (filedata) => {
                 const data = filedata;
@@ -178,7 +189,7 @@ class Main extends Component {
                 saveData(data, fileName);
               });
             }
-          },1000);
+          },500);
         }
       }
     });
@@ -232,7 +243,7 @@ class Main extends Component {
   }
 
   renderDownloadProgress() {
-    return this.state.downloadInprogress? <DownloadProgress downloadInprogress={this.state.downloadInprogress} onClick={this.handleDownloadCancel}/> : null;
+    return this.state.downloadInprogress? <DownloadProgress downloadInprogress={this.state.downloadInprogress} downloadPercent={this.state.downloadPercent} onClick={this.handleDownloadCancel}/> : null;
   }
 
   render() {
@@ -317,16 +328,17 @@ function UploadButton(props) {
 }
 
 function DownloadProgress(props) {
+
   return (
     <Modal show={props.downloadInprogress}>
-      <Modal.Header closeButton>
-        <Modal.Title>Modal heading</Modal.Title>
+      <Modal.Header>
+        <Modal.Title>Retrieving File From Storj Network</Modal.Title>
       </Modal.Header>
       <Modal.Body>
-        <div>Modal content here </div>
+        <ProgressBar now={props.downloadPercent} min={0} max={100} bsStyle='info' label={`${props.downloadPercent}%`}/>
       </Modal.Body>
       <Modal.Footer>
-        <button className='btn btn-upload' type='button' onClick={props.onClick}>Cancel</button>
+        {/* <button className='btn btn-upload' type='button' onClick={props.onClick}>Cancel</button> */}
       </Modal.Footer>
     </Modal>
   );
