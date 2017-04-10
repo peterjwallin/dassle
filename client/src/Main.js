@@ -18,7 +18,7 @@ class Main extends Component {
     this.handleDownloadClick = this.handleDownloadClick.bind(this);
     this.handleShowMyFiles = this.handleShowMyFiles.bind(this);
     this.handleBucketDropdownClick = this.handleBucketDropdownClick.bind(this);
-    this.handleDownloadCancel = this.handleDownloadCancel.bind(this);
+    this.handleDownloadFailedCancel = this.handleDownloadFailedCancel.bind(this);
     this.state = {
       showSubNav: false,
       showBuckets: false,
@@ -141,8 +141,11 @@ class Main extends Component {
           var percent_complete = 0;
           var downloadstatus = setInterval(() => {
             StreamStatus('', (result) => {
-              if (result.total === -1) {
-                this.setState({downloadFailed:true});
+              if (result.total === '-1') {
+                this.setState({
+                  downloadFailed:true,
+                  downloadInprogress:false
+                });
                 clearInterval(downloadstatus);
               }
               else {
@@ -161,11 +164,13 @@ class Main extends Component {
                       downloadInprogress:true,
                       downloadPercent:percent_complete
                   });
+                  /*
                   console.log('File Id', result.fileid);
                   console.log('File Name', result.filename);
                   console.log('Bytes received', result.progress);
                   console.log('Bytes total', result.total);
                   console.log('% complete', percent_complete);
+                  */
                 }
               }
             });
@@ -195,9 +200,9 @@ class Main extends Component {
     });
   }
 
-  handleDownloadCancel() {
+  handleDownloadFailedCancel() {
     this.setState({
-      downloadInprogress:false
+      downloadFailed:false
     });
   }
 
@@ -243,7 +248,11 @@ class Main extends Component {
   }
 
   renderDownloadProgress() {
-    return this.state.downloadInprogress? <DownloadProgress downloadInprogress={this.state.downloadInprogress} downloadPercent={this.state.downloadPercent} onClick={this.handleDownloadCancel}/> : null;
+    return this.state.downloadInprogress? <DownloadProgress downloadInprogress={this.state.downloadInprogress} downloadPercent={this.state.downloadPercent}/> : null;
+  }
+
+  renderDownloadFailed() {
+    return this.state.downloadFailed? <DownloadFailed downloadFailed={this.state.downloadFailed} onClick={this.handleDownloadFailedCancel}/> : null;
   }
 
   render() {
@@ -265,7 +274,6 @@ class Main extends Component {
             <div className='col-xs-12'>{this.renderCreateBucket()}</div>
             <div className='col-xs-6 text-left'>{this.renderBucketDropdown()}</div>
             <div className='col-xs-6 text-right'>{this.renderUploadButton()}</div>
-            <div className='col-xs-12'>{this.renderDownloadProgress()}</div>
           </div>
           <div className='row'>
             <div className='collapse' id='dropZone'>
@@ -273,6 +281,10 @@ class Main extends Component {
               <div className='col-xs-12'>{this.renderDropZone()}</div>
             </div>
             <div className='col-xs-12 dass-file'><br/>{this.renderFiles()}</div>
+          </div>
+          <div className='row'>
+            <div className='col-xs-12'>{this.renderDownloadProgress()}</div>
+            <div className='col-xs-12'>{this.renderDownloadFailed()}</div>
           </div>
         </div>
 
@@ -339,6 +351,21 @@ function DownloadProgress(props) {
       </Modal.Body>
       <Modal.Footer>
         {/* <button className='btn btn-upload' type='button' onClick={props.onClick}>Cancel</button> */}
+      </Modal.Footer>
+    </Modal>
+  );
+}
+
+function DownloadFailed(props) {
+
+  return (
+    <Modal show={props.downloadFailed}>
+      <Modal.Header>
+        <Modal.Title>Retrieving File From Storj Network</Modal.Title>
+      </Modal.Header>
+      <Modal.Body>Download Failed!</Modal.Body>
+      <Modal.Footer>
+        <button className='btn btn-upload' type='button' onClick={props.onClick}>Clear</button>
       </Modal.Footer>
     </Modal>
   );

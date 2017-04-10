@@ -98,3 +98,11 @@
 .panel-dass {
   border-color: #13AFBE;
 }
+
+.fa-times-circle {
+  color: #B22222;
+}
+
+.fa-check-circle {
+  color: green;
+}

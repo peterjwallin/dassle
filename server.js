@@ -409,10 +409,8 @@ app.get('/api/streamstatus', (req, res) => {
   }
 
   const downloadid = req.session.downloadid;
-  const userdir = req.session.userdir;
 
   db_client.hgetall(downloadid, function(err, object) {
-    console.log(object);
     return res.json(object);
   });
 

@@ -7,7 +7,7 @@ class Dropzone extends Component {
 
   render() {
 
-    /* var ReactDOMServer = require('react-dom/server'); */
+     var ReactDOMServer = require('react-dom/server');
 
     /*
     var processingCallback = function() {
@@ -33,15 +33,24 @@ class Dropzone extends Component {
     };
 
     var djsConfig = {
-      createImageThumbnails: true,
+      createImageThumbnails: false,
       autoProcessQueue: true,
       addRemoveLinks: true,
       parallelUploads: 1,
       clickable: true,
-      maxFilesize: 100,
+      maxFilesize: 10,
       dictFileTooBig: 'File is to large',
       maxFiles: 10,
       dictMaxFilesExceeded: 'Exceeded maximum allowable files',
+      previewTemplate: ReactDOMServer.renderToStaticMarkup(
+                        <div className="dz-preview">
+                          <div className="dz-progress"><i className="fa fa-spinner fa-spin fa-3x fa-fw"></i></div>
+                          <div className="dz-success-mark"><i className="fa fa-check-circle fa-5x"></i></div>
+                          <div className="dz-error-mark"><i className="fa fa-times-circle fa-5x"></i></div>
+                          <div className="dz-error-message"><span data-dz-errormessage="true"></span></div>
+                          <div className="dz-filename"><span data-dz-name="true"></span></div>
+                        </div>
+                      )
     };
 
     var eventHandlers = {

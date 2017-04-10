@@ -276,11 +276,21 @@
       .dropzone .dz-preview .dz-image img {
         display: block; }
     .dropzone .dz-preview.dz-success .dz-success-mark {
+      /* Custom edit - pjw */
+      /*
       -webkit-animation: passing-through 3s cubic-bezier(0.77, 0, 0.175, 1);
       -moz-animation: passing-through 3s cubic-bezier(0.77, 0, 0.175, 1);
       -ms-animation: passing-through 3s cubic-bezier(0.77, 0, 0.175, 1);
       -o-animation: passing-through 3s cubic-bezier(0.77, 0, 0.175, 1);
-      animation: passing-through 3s cubic-bezier(0.77, 0, 0.175, 1); }
+      animation: passing-through 3s cubic-bezier(0.77, 0, 0.175, 1);
+      */
+      opacity: 1;
+      -webkit-animation: slide-in 3s cubic-bezier(0.77, 0, 0.175, 1);
+      -moz-animation: slide-in 3s cubic-bezier(0.77, 0, 0.175, 1);
+      -ms-animation: slide-in 3s cubic-bezier(0.77, 0, 0.175, 1);
+      -o-animation: slide-in 3s cubic-bezier(0.77, 0, 0.175, 1);
+      animation: slide-in 3s cubic-bezier(0.77, 0, 0.175, 1);
+    }
     .dropzone .dz-preview.dz-error .dz-error-mark {
       opacity: 1;
       -webkit-animation: slide-in 3s cubic-bezier(0.77, 0, 0.175, 1);
@@ -294,7 +304,7 @@
       z-index: 500;
       position: absolute;
       display: block;
-      top: 50%;
+      top: 65%; /* Custom edit - pjw */
       left: 50%;
       margin-left: -27px;
       margin-top: -27px; }
@@ -327,13 +337,12 @@
       z-index: 1000;
       pointer-events: none;
       position: absolute;
-      height: 16px;
+      height: 75px;
       left: 50%;
       top: 50%;
-      margin-top: 20px; /* Custom edit - pjw */
       width: 80px;
       margin-left: -40px;
-      background: rgba(255, 255, 255, 0.9);
+      /* background: rgba(255, 255, 255, 0.9); */ /*Comment out - pjw */
       -webkit-transform: scale(1);
       border-radius: 8px;
       overflow: hidden; }
