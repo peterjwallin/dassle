@@ -308,12 +308,14 @@ app.get('/api/streamstorj', (req, res) => {
   const target_path = userdir + '/' + filename;
   const downloadid = req.query.fileid + '_' + shortid.generate();
 
+  /*
   console.log('bucketid...', bucketid);
   console.log('userdir', userdir);
   console.log('passphrase', passphrase);
   console.log('fileid...', fileid);
   console.log('filename...', filename);
   console.log('downloadid...', downloadid);
+  */
 
   if (!bucketid || !userdir || !passphrase || !fileid || !filename || !downloadid) {
     return res.json({downloadFailed: true});
@@ -327,7 +329,8 @@ app.get('/api/streamstorj', (req, res) => {
       'fileid': fileid,
       'filename': filename,
       'progress': '0',
-      'total': '0'
+      'total': '0',
+      'message': ''
   });
 
   // Retrieve user keyring
@@ -353,11 +356,21 @@ app.get('/api/streamstorj', (req, res) => {
   client.createFileStream(bucketid, fileid, { exclude: [] },function(err, stream) {
     if (err) {
       console.log('createFileStream method error', err.message);
+      // Delete the partial file
+      fs.unlink(target_path, function(unlinkFailed) {
+        if (unlinkFailed) {
+          console.log('error', 'Failed to unlink partial file.', target_path);
+        }
+        if (!err.pointer) {
+          console.log('error', 'Cannot find target.', target_path);
+        }
+      });
       db_client.hmset(downloadid, {
           'fileid': fileid,
           'filename': filename,
           'progress': '0',
-          'total': '-1'
+          'total': '-1',
+          'message': err.message
       });
     }
     else {
@@ -375,8 +388,10 @@ app.get('/api/streamstorj', (req, res) => {
         });
         db_client.hmset(downloadid, {
             'fileid': fileid,
+            'filename': filename,
             'progress': '0',
-            'total': '-1'
+            'total': '-1',
+            'message': err.message
         });
       })
       .pipe(through(function(chunk) {
@@ -385,7 +400,8 @@ app.get('/api/streamstorj', (req, res) => {
               'fileid': fileid,
               'filename': filename,
               'progress': received.toString(),
-              'total': stream._length.toString()
+              'total': stream._length.toString(),
+              'message': ''
           });
           console.log('info', 'Received ' + received + ' of ' + stream._length + ' bytes');
           this.queue(chunk);

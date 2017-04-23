@@ -12,18 +12,18 @@ class Main extends Component {
   constructor(props) {
     super(props);
     this.handleMyFilesLink = this.handleMyFilesLink.bind(this);
-    this.handleUploadLink = this.handleUploadLink.bind(this);
     this.handleCreateBucketLink = this.handleCreateBucketLink.bind(this);
+    this.handleToolsLink = this.handleToolsLink.bind(this);
     this.handleShowMyFilesClick = this.handleShowMyFilesClick.bind(this);
     this.handleDownloadClick = this.handleDownloadClick.bind(this);
     this.handleShowMyFiles = this.handleShowMyFiles.bind(this);
     this.handleBucketDropdownClick = this.handleBucketDropdownClick.bind(this);
-    this.handleDownloadFailedCancel = this.handleDownloadFailedCancel.bind(this);
+    this.handleDownloadFailedCancelClick = this.handleDownloadFailedCancelClick.bind(this);
     this.state = {
       showSubNav: false,
       showBuckets: false,
       myFiles: false,
-      upload: false,
+      tools: false,
       createBucket: false,
       isBuckets: false,
       buckets: [],
@@ -32,6 +32,7 @@ class Main extends Component {
       isFiles: false,
       files: [],
       downloadFailed: false,
+      downloadMessage: null,
       downloadInprogress: false,
       downloadPercent:0,
       isSessionInactive: false
@@ -60,16 +61,7 @@ class Main extends Component {
     this.setState({
       showBuckets:true,
       myFiles:false,
-      upload:false,
-      createBucket:false
-    });
-  }
-
-  handleUploadLink() {
-    this.setState({
-      showBuckets:false,
-      myFiles:false,
-      upload:true,
+      tools:false,
       createBucket:false
     });
   }
@@ -78,8 +70,17 @@ class Main extends Component {
     this.setState({
       showBuckets:false,
       myFiles:false,
-      upload:false,
+      tools:false,
       createBucket:true
+    });
+  }
+
+  handleToolsLink() {
+    this.setState({
+      showBuckets:false,
+      myFiles:false,
+      tools:true,
+      createBucket:false
     });
   }
 
@@ -134,7 +135,10 @@ class Main extends Component {
     StreamStorj(row.props.data.id, row.props.data.filename, (result) => {
       if (result) {
         if (result.downloadFailed) {
-          this.setState({downloadFailed:true});
+          this.setState({
+            downloadFailed:true,
+            downloadMessage:'One or more items needed to download the file was missing.'
+          });
         }
         else {
           const fileName = row.props.data.filename;
@@ -144,7 +148,8 @@ class Main extends Component {
               if (result.total === '-1') {
                 this.setState({
                   downloadFailed:true,
-                  downloadInprogress:false
+                  downloadInprogress:false,
+                  downloadMessage:result.message
                 });
                 clearInterval(downloadstatus);
               }
@@ -200,7 +205,7 @@ class Main extends Component {
     });
   }
 
-  handleDownloadFailedCancel() {
+  handleDownloadFailedCancelClick() {
     this.setState({
       downloadFailed:false
     });
@@ -211,12 +216,12 @@ class Main extends Component {
     return this.state.showSubNav? <MyFilesLink onClick={this.handleMyFilesLink} /> : null;
   }
 
-  renderUploadLink() {
-    return this.state.showSubNav? <UploadLink onClick={this.handleUploadLink} /> : null;
-  }
-
   renderCreateBucketLink() {
     return this.state.showSubNav? <CreateBucketLink onClick={this.handleCreateBucketLink} /> : null;
+  }
+
+  renderToolsLink() {
+    return this.state.showSubNav? <ToolsLink onClick={this.handleToolsLink} /> : null;
   }
 
   renderBuckets() {
@@ -239,12 +244,12 @@ class Main extends Component {
     return this.state.myFiles? <UploadButton /> : null;
   }
 
-  renderUpload() {
-    return this.state.upload? <h1>Upload File</h1> : null;
-  }
-
   renderCreateBucket() {
     return this.state.createBucket? <h1>CreateBucket</h1> : null;
+  }
+
+  renderTools() {
+    return this.state.tools? <h1>Tools</h1> : null;
   }
 
   renderDownloadProgress() {
@@ -252,7 +257,7 @@ class Main extends Component {
   }
 
   renderDownloadFailed() {
-    return this.state.downloadFailed? <DownloadFailed downloadFailed={this.state.downloadFailed} onClick={this.handleDownloadFailedCancel}/> : null;
+    return this.state.downloadFailed? <DownloadFailed downloadFailed={this.state.downloadFailed} downloadMessage={this.state.downloadMessage} onClick={this.handleDownloadFailedCancelClick}/> : null;
   }
 
   render() {
@@ -262,16 +267,16 @@ class Main extends Component {
         <div className='container'>
           <div className='row'>
             <div className='col-xs-2 dass-link'>{this.renderMyFilesLink()}</div>
-            <div className='col-xs-2 dass-link'>{this.renderUploadLink()}</div>
             <div className='col-xs-2 dass-link'>{this.renderCreateBucketLink()}</div>
+            <div className='col-xs-2 dass-link'>{this.renderToolsLink()}</div>
           </div>
           <div className='row'>
             <div className='col-xs-12'><hr/></div>
           </div>
           <div className='row'>
             <div className='col-xs-12 dass-folder'>{this.renderBuckets()}</div>
-            <div className='col-xs-12'>{this.renderUpload()}</div>
             <div className='col-xs-12'>{this.renderCreateBucket()}</div>
+            <div className='col-xs-12'>{this.renderTools()}</div>
             <div className='col-xs-6 text-left'>{this.renderBucketDropdown()}</div>
             <div className='col-xs-6 text-right'>{this.renderUploadButton()}</div>
           </div>
@@ -300,15 +305,15 @@ function MyFilesLink(props) {
   );
 }
 
-function UploadLink(props) {
+function CreateBucketLink(props) {
   return (
-    <a href='#' onClick={props.onClick}><span className='glyphicon glyphicon-cloud-upload'></span>&nbsp;Upload</a>
+    <a href='#' onClick={props.onClick}><span className='glyphicon glyphicon-folder-open'></span>&nbsp;&nbsp;New Bucket</a>
   );
 }
 
-function CreateBucketLink(props) {
+function ToolsLink(props) {
   return (
-    <a href='#' onClick={props.onClick}><span className='glyphicon glyphicon-folder-open'></span>&nbsp;&nbsp;Create Bucket</a>
+    <a href='#' onClick={props.onClick}>&nbsp;&nbsp;<span className='glyphicon glyphicon-cog'></span>&nbsp;Tools</a>
   );
 }
 
@@ -340,7 +345,6 @@ function UploadButton(props) {
 }
 
 function DownloadProgress(props) {
-
   return (
     <Modal show={props.downloadInprogress}>
       <Modal.Header>
@@ -357,13 +361,12 @@ function DownloadProgress(props) {
 }
 
 function DownloadFailed(props) {
-
   return (
     <Modal show={props.downloadFailed}>
       <Modal.Header>
-        <Modal.Title>Retrieving File From Storj Network</Modal.Title>
+        <Modal.Title>Download Failed!</Modal.Title>
       </Modal.Header>
-      <Modal.Body>Download Failed!</Modal.Body>
+      <Modal.Body>Error: {props.downloadMessage}.</Modal.Body>
       <Modal.Footer>
         <button className='btn btn-upload' type='button' onClick={props.onClick}>Clear</button>
       </Modal.Footer>
